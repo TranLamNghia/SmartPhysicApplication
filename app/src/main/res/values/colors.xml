@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors -->
+    <color name="green_700">#15803d</color>
+    <color name="green_600">#16a34a</color>
+    <color name="green_500">#22c55e</color>
+    <color name="green_400">#4ade80</color>
+
+    <!-- Secondary Colors -->
+    <color name="blue_700">#1d4ed8</color>
+    <color name="blue_500">#3b82f6</color>
+    <color name="yellow_400">#facc15</color>
+    <color name="teal_400">#2dd4bf</color>
+    <color name="orange_300">#fdba74</color>
+    <color name="pink_200">#fbcfe8</color>
+    <color name="purple_200">#e9d5ff</color>
+
+    <!-- Neutral Colors -->
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+    <color name="gray_400">#9ca3af</color>
+    <color name="gray_200">#e5e7eb</color>
+    <color name="gray_100">#f3f4f6</color>
+</resources>

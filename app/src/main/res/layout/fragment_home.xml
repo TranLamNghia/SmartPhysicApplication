@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/gradient_green_background">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Search Bar -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:padding="16dp">
+
+                <EditText
+                    android:id="@+id/search_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:hint="HÔM NAY BAN MUỐN HỌC GÌ?"
+                    android:textColorHint="@color/green_700"
+                    android:textAlignment="center"
+                    android:textStyle="bold"
+                    android:background="@drawable/search_bar_background"
+                    android:paddingHorizontal="48dp"
+                    android:textSize="14sp" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_search"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="20dp"/>
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_mic"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="20dp"/>
+
+            </RelativeLayout>
+
+            <!-- Grade Level Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="5dp"
+                android:padding="16dp">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btn_physics_10"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:layout_margin="20dp"
+                        android:text="VẬT LÝ 10"
+                        android:textSize="30sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white"
+                        android:background="@drawable/button_physics10" />
+
+                    <ImageView
+                        android:id="@+id/img_physics_10"
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
+                        android:src="@drawable/img_magnet"
+                        android:layout_gravity="start"
+                        android:layout_marginTop="-5dp"
+                        android:layout_marginStart="300dp"
+                        android:elevation="10dp"/>
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
+                    
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btn_physics_11"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:layout_margin="20dp"
+                        android:text="VẬT LÝ 11"
+                        android:textSize="30sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white"
+                        android:background="@drawable/button_physics11"
+                        android:gravity="center"
+                        android:paddingHorizontal="24dp" />
+
+                    <ImageView
+                        android:id="@+id/img_physics_118"
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
+                        android:src="@drawable/img_atom_color"
+                        android:layout_gravity="start"
+                        android:layout_marginStart="-10dp"
+                        android:layout_marginTop="0dp"
+                        android:elevation="10dp" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btn_physics_12"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:layout_margin="20dp"
+                        android:text="VẬT LÝ 12"
+                        android:textSize="30sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white"
+                        android:background="@drawable/button_physics12"
+                        android:gravity="center"
+                        android:paddingHorizontal="24dp" />
+
+                    <ImageView
+                        android:id="@+id/img_physics_12"
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
+                        android:src="@drawable/img_rocket"
+                        android:layout_gravity="start"
+                        android:layout_marginTop="-5dp"
+                        android:layout_marginStart="300dp"
+                        android:elevation="10dp"/>
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btn_virtual_lab"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:layout_margin="20dp"
+                        android:text="Phòng thí\nnghiệm ảo"
+                        android:textSize="25sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white"
+                        android:background="@drawable/button_virtual_lab"
+                        android:gravity="center"
+                        android:paddingHorizontal="24dp"/>
+
+                    <ImageView
+                        android:id="@+id/img_chemical_molecules"
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
+                        android:src="@drawable/img_chemical_molecules"
+                        android:layout_gravity="start"
+                        android:layout_marginTop="15dp"
+                        android:layout_marginStart="10dp"
+                        android:elevation="10dp"/>
+
+                    <ImageView
+                        android:id="@+id/img_laptop"
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
+                        android:src="@drawable/img_laptop"
+                        android:layout_gravity="start"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginStart="260dp"
+                        android:elevation="10dp"
+                        android:alpha="0.8"/>
+
+                    <ImageView
+                        android:id="@+id/img_magnifying_glass"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:src="@drawable/ic_magnifying_glass"
+                        android:layout_gravity="start"
+                        android:layout_marginTop="50dp"
+                        android:layout_marginStart="310dp"
+                        android:elevation="10dp"
+                        android:alpha="0.8"/>
+                </FrameLayout>
+            </LinearLayout>
+
+
+            <!-- Feature Icons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="5"
+                android:layout_marginTop="10dp">
+
+                <LinearLayout
+                    android:id="@+id/btn_study_roadmap"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="5dp"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:scaleX="1"
+                        android:scaleY="1"
+                        android:layout_gravity="center_horizontal"
+                        android:src="@drawable/img_study_roadmap"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Lộ trình học"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textAlignment="center" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/btn_take_picture"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="5dp"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+
+                    <ImageView
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:scaleX="1.5"
+                        android:scaleY="1.5"
+                        android:layout_gravity="center_horizontal"
+                        android:src="@drawable/img_take_picture"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Chụp ảnh BT"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textAlignment="center" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/btn_community"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="5dp"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+
+                    <ImageView
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:scaleX="1.1"
+                        android:scaleY="1.1"
+                        android:layout_gravity="center_horizontal"
+                        android:src="@drawable/img_community"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Cộng đồng"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textAlignment="center" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/btn_gamification"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="5dp"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+
+                    <ImageView
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:scaleX="1.3"
+                        android:scaleY="1.1"
+                        android:layout_gravity="center_horizontal"
+                        android:src="@drawable/img_gamification"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Gamification"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textAlignment="center" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/btn_exam"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="5dp"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+
+                    <ImageView
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:scaleX="1.3"
+                        android:scaleY="1.3"
+                        android:layout_gravity="center_horizontal"
+                        android:src="@drawable/img_exam"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Đề thi"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textAlignment="center" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>
