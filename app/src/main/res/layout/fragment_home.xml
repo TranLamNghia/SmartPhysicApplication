@@ -216,7 +216,7 @@
                 android:layout_marginTop="10dp">
 
                 <LinearLayout
-                    android:id="@+id/btn_study_roadmap"
+                    android:id="@+id/btn_learning_path"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"

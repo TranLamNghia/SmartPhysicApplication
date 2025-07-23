@@ -1,6 +1,5 @@
 package com.example.smartphysicapplication.main
 
-import android.media.session.MediaController
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -51,7 +50,7 @@ class VideoLectureFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         playerView = view.findViewById(R.id.player_view)
-        btnBack = view.findViewById(R.id.btn_back_video_lecture)
+        btnBack = view.findViewById(R.id.btn_back)
 
         val subjectTitle = arguments?.getString("subject_title")
         val topicName = arguments?.getString("topic_name")

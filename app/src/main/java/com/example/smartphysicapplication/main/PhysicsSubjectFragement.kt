@@ -40,7 +40,7 @@ class PhysicsSubjectFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_physics_subject, container, false)
 
-        btnBack = view.findViewById(R.id.btn_back_physics_subject)
+        btnBack = view.findViewById(R.id.btn_back)
         subjectTitleTextView = view.findViewById(R.id.subject_title)
         chaptersRecyclerView = view.findViewById(R.id.chapters_recycler_view)
 

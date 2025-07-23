@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.smartphysicapplication.R
@@ -21,6 +22,8 @@ class HomeFragment : Fragment() {
     private lateinit var navBot: ImageView
     private lateinit var navSend: ImageView
 
+    private lateinit var learningPathIcon: LinearLayout
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -34,6 +37,8 @@ class HomeFragment : Fragment() {
         btnPhysics10 = view.findViewById(R.id.btn_physics_10)
         btnPhysics11 = view.findViewById(R.id.btn_physics_11)
         btnPhysics12 = view.findViewById(R.id.btn_physics_12)
+
+        learningPathIcon = view.findViewById(R.id.btn_learning_path)
 
         setupClickListeners()
     }
@@ -50,6 +55,10 @@ class HomeFragment : Fragment() {
 
         btnPhysics12.setOnClickListener {
             (activity as? MainActivity)?.loadFragment(PhysicsSubjectFragment.newInstance("VẬT LÝ 12"))
+        }
+
+        learningPathIcon.setOnClickListener {
+            (activity as? MainActivity)?.loadFragment(LearningPathFragment())
         }
     }
 

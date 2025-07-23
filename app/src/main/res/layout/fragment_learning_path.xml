@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient_green_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="30dp">
+
+            <ImageView
+                android:id="@+id/btn_back"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_back"
+                android:layout_marginEnd="8dp"
+                app:tint="@color/green_600" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LỘ TRÌNH HỌC CÁ NHÂN HÓA"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/green_700" />
+
+        </LinearLayout>
+
+        <!-- Monthly Results Title -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp"
+            android:layout_gravity="center">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/img_champ"
+                android:textSize="16sp"
+                android:scaleX="1.2"
+                android:scaleY="1.2"
+                android:gravity="center"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="KẾT QUẢ HỌC TẬP THÁNG 1"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/red"/>
+
+        </LinearLayout>
+
+        <!-- Progress Chart -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_marginBottom="24dp">
+
+            <!-- Chart Container -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:orientation="horizontal"
+                android:gravity="bottom"
+                android:layout_marginBottom="8dp">
+
+                <!-- Chart Bars -->
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/bar_chart"
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp"
+                    android:layout_marginBottom="16dp" />
+
+            </LinearLayout>
+
+            <!-- Chart Description -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Đang để xuất lộ trình phù hợp..."
+                android:textSize="18sp"
+                android:textColor="@color/green_700"
+                android:textStyle="italic|bold"
+                android:layout_gravity="center" />
+
+        </LinearLayout>
+
+        <!-- Learning Path Cards -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- First Course Card -->
+            <LinearLayout
+                android:id="@+id/course_card_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Lộ trình học Vật lý 11 (Từ 6-8+)"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/green_700"
+                    android:layout_marginBottom="12dp"
+                    android:padding="20dp"
+                    android:gravity="center"
+                    android:background="@drawable/button_learningpath_background"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp"
+                    android:weightSum="2">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Đầu vào: 6-6.5"
+                            android:layout_gravity="top|start"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/green_700"
+                            android:layout_marginEnd="24dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Đầu ra: 8+"
+                            android:layout_gravity="bottom|start"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/green_700"
+                            android:layout_marginEnd="24dp" />
+
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:layout_weight="1">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="top|start"
+                            android:orientation="horizontal"
+                            android:layout_marginLeft="30dp">
+
+                            <ImageView
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
+                                android:src="@drawable/img_book"
+                                android:scaleX="1.1"
+                                android:scaleY="1.1"
+                                android:layout_marginRight="5dp"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="12 bài học"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/green_700"
+                                android:drawablePadding="4dp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_marginLeft="35dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1,5 tháng"
+                            android:layout_gravity="bottom|start"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/green_700"
+                            android:drawableStart="@drawable/ic_clock"
+                            android:drawablePadding="7dp" />
+
+                    </FrameLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Second Course Card -->
+            <LinearLayout
+                android:id="@+id/course_card_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Lộ trình học Vật lý 11 (Từ 6-8+)"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/green_700"
+                    android:layout_marginBottom="12dp"
+                    android:padding="20dp"
+                    android:gravity="center"
+                    android:background="@drawable/button_learningpath_background"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp"
+                    android:weightSum="2">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Đầu vào: 8"
+                            android:layout_gravity="top|start"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/green_700"
+                            android:layout_marginEnd="24dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Đầu ra: 9+"
+                            android:layout_gravity="bottom|start"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/green_700"
+                            android:layout_marginEnd="24dp" />
+
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:layout_weight="1">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="top|start"
+                            android:orientation="horizontal"
+                            android:layout_marginLeft="30dp">
+
+                            <ImageView
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
+                                android:src="@drawable/img_book"
+                                android:scaleX="1.1"
+                                android:scaleY="1.1"
+                                android:layout_marginRight="5dp"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="16 bài học"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/green_700"
+                                android:drawablePadding="4dp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_marginLeft="35dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="2 tháng"
+                            android:layout_gravity="bottom|start"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/green_700"
+                            android:drawableStart="@drawable/ic_clock"
+                            android:drawablePadding="7dp" />
+
+                    </FrameLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>
