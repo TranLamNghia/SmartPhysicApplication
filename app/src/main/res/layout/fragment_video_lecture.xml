@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/tools"
+    android:background="@drawable/gradient_green_background"
+    app:ignore="NamespaceTypo">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Back Button and Title -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="30dp">
+
+            <ImageView
+                android:id="@+id/btn_back_video_lecture"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_back"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/video_lecture_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BÀI GIẢNG VIDEO"
+
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/green_700" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="BÀI 1: DAO ĐỘNG ĐIỀU HÒA"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:textAlignment="center"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Video Thumbnail Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            card_view:cardCornerRadius="16dp"
+            card_view:cardElevation="4dp"
+            android:layout_marginBottom="24dp">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="0dp">
+
+                <androidx.media3.ui.PlayerView
+                    android:id="@+id/player_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    app:show_buffering="when_playing"
+                    app:use_controller="false"
+                    />
+            </FrameLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Lesson List -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="20dp">
+
+            <LinearLayout android:id="@+id/lesson_item_1"
+                style="@style/LessonItemStyle">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/circle_green800_background"
+                    android:layout_marginEnd="10dp">
+                        <ImageView style="@style/LessonArrowStyle"/>
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bài 1: Dao động điều hòa"
+                    style="@style/LessonTextStyle" />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/lesson_item_2"
+                style="@style/LessonItemStyle">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/circle_green800_background"
+                    android:layout_marginEnd="10dp">
+                        <ImageView style="@style/LessonArrowStyle"/>
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bài 2: Mô tả dao động điều hòa"
+                    style="@style/LessonTextStyle" />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/lesson_item_3"
+                style="@style/LessonItemStyle">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/circle_green800_background"
+                    android:layout_marginEnd="10dp">
+                    <ImageView style="@style/LessonArrowStyle"/>
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bài 3: Vận tốc, gia tốc"
+                    style="@style/LessonTextStyle" />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/lesson_item_4"
+                style="@style/LessonItemStyle">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/circle_green800_background"
+                    android:layout_marginEnd="10dp">
+                    <ImageView style="@style/LessonArrowStyle"/>
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bài 4: Động năng, thế năng và..."
+                    style="@style/LessonTextStyle" />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/lesson_item_5"
+                style="@style/LessonItemStyle">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/circle_green800_background"
+                    android:layout_marginEnd="10dp">
+                    <ImageView style="@style/LessonArrowStyle"/>
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bài 5: Ôn tập"
+                    style="@style/LessonTextStyle" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Comment Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="12dp">
+
+            <LinearLayout
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/circle_red_background"
+                android:layout_marginEnd="10dp"
+                android:gravity="center">
+                <ImageView
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:src="@drawable/ic_mail" />
+            </LinearLayout>
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Bình luận..."
+                android:textSize="16sp"
+                android:textColorHint="@color/black"
+                android:textStyle="italic|bold"
+                android:gravity="center_vertical"
+                android:padding="15dp"
+                android:background="@drawable/button_white_rounded"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

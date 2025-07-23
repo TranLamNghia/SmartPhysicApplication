@@ -17,8 +17,8 @@
     android:gravity="center_vertical">
 
     <ImageView
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:src="@drawable/img_atom"
         android:layout_marginEnd="8dp"
         app:tint="@color/green_600" />

@@ -18,6 +18,7 @@
     <!-- Neutral Colors -->
     <color name="white">#ffffff</color>
     <color name="black">#000000</color>
+    <color name="gray_700">#374151</color>
     <color name="gray_400">#9ca3af</color>
     <color name="gray_200">#e5e7eb</color>
     <color name="gray_100">#f3f4f6</color>
