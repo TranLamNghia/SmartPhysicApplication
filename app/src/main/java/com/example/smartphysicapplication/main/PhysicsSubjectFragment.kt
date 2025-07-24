@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -18,6 +19,7 @@ import com.example.smartphysicapplication.model.Topic
 class PhysicsSubjectFragment : Fragment() {
 
     private lateinit var btnBack: ImageView
+    private lateinit var btnMindMap : Button
     private lateinit var subjectTitleTextView: TextView
     private lateinit var chaptersRecyclerView: RecyclerView
     private lateinit var chapterAdapter: ChapterAdapter
@@ -44,6 +46,7 @@ class PhysicsSubjectFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         btnBack = view.findViewById(R.id.btn_back)
+        btnMindMap = view.findViewById(R.id.btn_mindmap)
         subjectTitleTextView = view.findViewById(R.id.subject_title)
         chaptersRecyclerView = view.findViewById(R.id.chapters_recycler_view)
 
@@ -53,6 +56,10 @@ class PhysicsSubjectFragment : Fragment() {
 
         btnBack.setOnClickListener {
             parentFragmentManager.popBackStack()
+        }
+
+        btnMindMap.setOnClickListener {
+            (activity as? MainActivity)?.loadFragment(MindMapFragment())
         }
 
         setupChaptersRecyclerView()

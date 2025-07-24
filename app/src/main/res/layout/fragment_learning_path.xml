@@ -17,7 +17,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="30dp">
+            android:layout_marginBottom="5dp">
 
             <ImageView
                 android:id="@+id/btn_back"
@@ -36,6 +36,12 @@
                 android:textColor="@color/green_700" />
 
         </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="#CBFFE7"
+            android:layout_marginBottom="25dp"/>
 
         <!-- Monthly Results Title -->
         <LinearLayout

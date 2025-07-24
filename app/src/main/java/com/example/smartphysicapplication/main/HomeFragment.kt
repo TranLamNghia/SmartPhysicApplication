@@ -1,5 +1,6 @@
 package com.example.smartphysicapplication.main
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -23,6 +24,7 @@ class HomeFragment : Fragment() {
     private lateinit var navSend: ImageView
 
     private lateinit var learningPathIcon: LinearLayout
+    private lateinit var gamificationPathIcon: LinearLayout
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,6 +41,7 @@ class HomeFragment : Fragment() {
         btnPhysics12 = view.findViewById(R.id.btn_physics_12)
 
         learningPathIcon = view.findViewById(R.id.btn_learning_path)
+        gamificationPathIcon= view.findViewById(R.id.btn_gamification)
 
         setupClickListeners()
     }
@@ -59,6 +62,11 @@ class HomeFragment : Fragment() {
 
         learningPathIcon.setOnClickListener {
             (activity as? MainActivity)?.loadFragment(LearningPathFragment())
+        }
+
+        gamificationPathIcon.setOnClickListener {
+            val intent = Intent(requireContext(), GamificationActivity::class.java)
+            startActivity(intent)
         }
     }
 
