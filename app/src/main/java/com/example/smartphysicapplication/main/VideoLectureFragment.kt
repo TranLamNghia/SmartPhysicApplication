@@ -77,4 +77,10 @@ class VideoLectureFragment : Fragment() {
             Toast.makeText(context, "Không có video", Toast.LENGTH_SHORT).show()
         }
     }
+
+    override fun onDestroyView() {
+        player?.release()
+        player = null
+        super.onDestroyView()
+    }
 }

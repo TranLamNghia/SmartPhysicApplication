@@ -50,4 +50,6 @@ dependencies {
     val media3Version = "1.3.1"
     // For media playback using ExoPlayer (part of Media3)
     implementation("androidx.media3:media3-exoplayer:$media3Version")
+
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }

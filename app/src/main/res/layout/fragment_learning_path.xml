@@ -43,7 +43,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="10dp"
             android:layout_gravity="center">
 
             <ImageView
@@ -71,23 +71,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp"
-            android:layout_marginBottom="24dp">
+            android:padding="0dp"
+            android:layout_marginBottom="15dp">
 
             <!-- Chart Container -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="120dp"
+                android:layout_height="200dp"
                 android:orientation="horizontal"
-                android:gravity="bottom"
-                android:layout_marginBottom="8dp">
+                android:gravity="center_horizontal|bottom">
 
                 <!-- Chart Bars -->
                 <com.github.mikephil.charting.charts.BarChart
                     android:id="@+id/bar_chart"
-                    android:layout_width="match_parent"
-                    android:layout_height="250dp"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_width="300dp"
+                    android:layout_height="190dp"/>
 
             </LinearLayout>
 
@@ -116,7 +114,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="10dp">
 
                 <TextView
                     android:layout_width="match_parent"

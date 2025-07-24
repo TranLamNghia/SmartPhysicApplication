@@ -38,8 +38,11 @@ class PhysicsSubjectFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_physics_subject, container, false)
+        return inflater.inflate(R.layout.fragment_physics_subject, container, false)
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         btnBack = view.findViewById(R.id.btn_back)
         subjectTitleTextView = view.findViewById(R.id.subject_title)
         chaptersRecyclerView = view.findViewById(R.id.chapters_recycler_view)
@@ -53,7 +56,6 @@ class PhysicsSubjectFragment : Fragment() {
         }
 
         setupChaptersRecyclerView()
-        return view
     }
 
     private fun setupChaptersRecyclerView() {
