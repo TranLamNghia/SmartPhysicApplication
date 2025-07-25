@@ -179,7 +179,7 @@
                 android:textStyle="italic|bold"
                 android:gravity="center_vertical"
                 android:padding="15dp"
-                android:background="@drawable/button_white_rounded"/>
+                android:background="@drawable/button_white_background"/>
         </LinearLayout>
 
     </LinearLayout>

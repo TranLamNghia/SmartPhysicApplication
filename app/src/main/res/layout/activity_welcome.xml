@@ -114,7 +114,7 @@
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@color/black"
-                android:background="@drawable/button_white_rounded" />
+                android:background="@drawable/button_white_background" />
 
             <ImageView
                 android:layout_width="40dp"
@@ -148,7 +148,7 @@
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@color/black"
-                android:background="@drawable/button_white_rounded" />
+                android:background="@drawable/button_white_background" />
 
             <ImageView
                 android:layout_width="40dp"

@@ -1,15 +1,21 @@
 package com.example.smartphysicapplication.main
 
+import android.animation.ValueAnimator
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.View
+import android.view.animation.LinearInterpolator
 import android.widget.ImageView
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import com.example.smartphysicapplication.R
 
 class GamificationActivity : AppCompatActivity(){
     private lateinit var btnBack: ImageView
+
+    private lateinit var animator: ValueAnimator
+    private var isPaused = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,23 +26,34 @@ class GamificationActivity : AppCompatActivity(){
             finish()
         }
 
-        val rainbowView = findViewById<View>(R.id.progressRainbow)
+        startProgressAnimation()
+    }
 
-        val rainbowGradient = GradientDrawable(
-            GradientDrawable.Orientation.LEFT_RIGHT,
-            intArrayOf(
-                Color.parseColor("#8B00FF"), // Tím
-                Color.parseColor("#0000FF"), // Xanh dương
-                Color.parseColor("#00FFFF"), // Xanh lam
-                Color.parseColor("#00FF00"), // Xanh lá
-                Color.parseColor("#FFFF00"), // Vàng
-                Color.parseColor("#FF7F00"), // Cam
-                Color.parseColor("#FF0000")  // Đỏ
-            )
-        )
-        rainbowGradient.cornerRadius = 100f  // Bo góc mượt
 
-        rainbowView.background = rainbowGradient
+    private fun startProgressAnimation() {
+        val progressBar = findViewById<ProgressBar>(R.id.progressRainbow)
+        val pauseBtn = findViewById<ImageView>(R.id.btn_pause_gamification)
+
+        animator = ValueAnimator.ofInt(100, 0)
+        animator.duration = 10000
+        animator.interpolator = LinearInterpolator()
+        animator.addUpdateListener {
+            val value = it.animatedValue as Int
+            progressBar.progress = value
+        }
+
+        animator.start()
+
+        pauseBtn.setOnClickListener {
+            if (isPaused) {
+                animator.resume()
+                pauseBtn.setImageResource(R.drawable.ic_pause_circle) // Icon "Pause"
+            } else {
+                animator.pause()
+                pauseBtn.setImageResource(R.drawable.ic_play_circle) // Icon "Play/Continue"
+            }
+            isPaused = !isPaused
+        }
     }
 
 }
