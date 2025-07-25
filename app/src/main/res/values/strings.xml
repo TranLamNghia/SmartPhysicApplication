@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">SmartPhysicApplication</string>
+
+    <string name="question_user">Phát biểu định luật phản xạ ánh sáng</string>
+    <string name="answer_bot">
+        Khi ánh sáng bị phản xạ, tia phản xạ sẽ nằm trong mặt phẳng chứa tia tới
+        và pháp tuyến của gương ở điểm tới. Góc phản xạ bằng góc tới
+    </string>
 </resources>

@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/gradient_green_background">
+
+    <!-- AI Assistant Title -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/btn_back"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:src="@drawable/ic_back"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TRỢ LÝ ẢO"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/green_700" />
+
+    </LinearLayout>
+
+    <!-- Chat Content Area -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="16dp">
+
+        <!-- Chatbot Avatar and Welcome Message -->
+        <LinearLayout
+            android:id="@+id/welcome_section"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_centerHorizontal="true">
+
+            <!-- Speech Bubble -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/speech_bubble_bot_rounded"
+                android:padding="12dp"
+                android:layout_marginTop="100dp"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Xin chào, tôi có thể giúp gì cho bạn?"
+                    android:textSize="18sp"
+                    android:textColor="@color/green_700" />
+
+            </LinearLayout>
+
+            <!-- Chatbot Avatar -->
+            <ImageView
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:src="@drawable/img_chatbot"/>
+
+        </LinearLayout>
+
+        <!-- Suggested Questions -->
+        <LinearLayout
+            android:id="@+id/suggested_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_alignParentBottom="true">
+
+            <TextView
+                android:id="@+id/suggestion_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dao động điều hòa là gì?"
+                android:textSize="14sp"
+                android:textColor="@color/gray_400"
+                android:padding="8dp"
+                android:layout_marginBottom="8dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/suggestion_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Công thức tính lực?"
+                android:textSize="14sp"
+                android:textColor="@color/gray_400"
+                android:padding="8dp"
+                android:layout_marginBottom="8dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/suggestion_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Định luật bảo toàn năng lượng?"
+                android:textSize="14sp"
+                android:textColor="@color/gray_400"
+                android:padding="8dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_chat"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:layout_above="@id/suggested_section"
+            android:layout_alignParentTop="true"
+            android:layout_marginBottom="16dp"/>
+
+    </RelativeLayout>
+
+    <!-- Input Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/button_learningpath_background"
+        android:padding="12dp"
+        android:layout_margin="16dp">
+
+        <EditText
+            android:id="@+id/chat_input"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Nhập câu hỏi vào đây..."
+            android:textColorHint="@color/black"
+            android:textSize="16sp"
+            android:background="@android:color/transparent"
+            android:padding="8dp" />
+
+        <ImageView
+            android:id="@+id/btn_send_message"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:scaleX="1.5"
+            android:scaleY="1.5"
+            android:src="@drawable/ic_send_message"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
+
+</LinearLayout>

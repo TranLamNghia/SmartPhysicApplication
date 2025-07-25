@@ -28,9 +28,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigationListeners() {
-        findViewById<AppCompatButton>(R.id.btn_nav_home).setOnClickListener { loadFragment(HomeFragment()) }
+        findViewById<AppCompatButton>(R.id.btn_nav_home).setOnClickListener {
+            loadFragment(HomeFragment())
+        }
         findViewById<AppCompatButton>(R.id.btn_nav_robot).setOnClickListener {
-            Toast.makeText(this, "Chatbot - Đang phát triển", Toast.LENGTH_SHORT).show()
+            loadFragment(ChatBotFragment())
         }
         findViewById<AppCompatButton>(R.id.btn_nav_send).setOnClickListener {
             Toast.makeText(this, "Gửi tin nhắn - Đang phát triển", Toast.LENGTH_SHORT).show()
