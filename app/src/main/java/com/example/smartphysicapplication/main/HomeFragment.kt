@@ -19,9 +19,6 @@ class HomeFragment : Fragment() {
     private lateinit var btnPhysics10: Button
     private lateinit var btnPhysics11: Button
     private lateinit var btnPhysics12: Button
-    private lateinit var navHome: ImageView
-    private lateinit var navBot: ImageView
-    private lateinit var navSend: ImageView
 
     private lateinit var learningPathIcon: LinearLayout
     private lateinit var gamificationPathIcon: LinearLayout

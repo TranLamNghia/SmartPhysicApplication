@@ -1,6 +1,7 @@
 package com.example.smartphysicapplication.main
 
 import android.animation.ValueAnimator
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -9,6 +10,7 @@ import android.view.animation.LinearInterpolator
 import android.widget.ImageView
 import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import com.example.smartphysicapplication.R
 
 class GamificationActivity : AppCompatActivity(){
@@ -26,9 +28,17 @@ class GamificationActivity : AppCompatActivity(){
             finish()
         }
 
+        val btn_user : ImageView = findViewById(R.id.user)
+        btn_user.setOnClickListener{
+            val intent = Intent(this, MainActivity::class.java)
+            intent.putExtra("open_fragment", "buy_courses")
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            startActivity(intent)
+            finish()
+        }
+
         startProgressAnimation()
     }
-
 
     private fun startProgressAnimation() {
         val progressBar = findViewById<ProgressBar>(R.id.progressRainbow)

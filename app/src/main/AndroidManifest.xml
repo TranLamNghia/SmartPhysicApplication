@@ -24,7 +24,8 @@
         <activity
             android:name=".main.MainActivity"
             android:windowSoftInputMode="adjustNothing"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
         </activity>
         <activity
             android:name=".main.GamificationActivity"
