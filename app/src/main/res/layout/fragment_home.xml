@@ -58,13 +58,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginBottom="5dp"
                 android:padding="16dp">
 
                 <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
                     android:clipChildren="false"
                     android:clipToPadding="false">
 
@@ -74,7 +72,7 @@
                         android:layout_height="64dp"
                         android:layout_margin="20dp"
                         android:text="VẬT LÝ 10"
-                        android:textSize="30sp"
+                        android:textSize="25sp"
                         android:textStyle="bold"
                         android:textColor="@color/white"
                         android:background="@drawable/button_physics10" />
@@ -84,26 +82,24 @@
                         android:layout_width="70dp"
                         android:layout_height="70dp"
                         android:src="@drawable/img_magnet"
-                        android:layout_gravity="start"
-                        android:layout_marginTop="-5dp"
-                        android:layout_marginStart="300dp"
+                        android:layout_gravity="end"
+                        android:layout_marginEnd="10dp"
                         android:elevation="10dp"/>
                 </FrameLayout>
 
                 <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
                     android:clipChildren="false"
                     android:clipToPadding="false">
-                    
+
                     <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btn_physics_11"
                         android:layout_width="match_parent"
                         android:layout_height="64dp"
                         android:layout_margin="20dp"
                         android:text="VẬT LÝ 11"
-                        android:textSize="30sp"
+                        android:textSize="25sp"
                         android:textStyle="bold"
                         android:textColor="@color/white"
                         android:background="@drawable/button_physics11"
@@ -116,7 +112,6 @@
                         android:layout_height="70dp"
                         android:src="@drawable/img_atom_color"
                         android:layout_gravity="start"
-                        android:layout_marginStart="-10dp"
                         android:layout_marginTop="0dp"
                         android:elevation="10dp" />
                 </FrameLayout>
@@ -124,7 +119,6 @@
                 <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
                     android:clipChildren="false"
                     android:clipToPadding="false">
 
@@ -134,7 +128,7 @@
                         android:layout_height="64dp"
                         android:layout_margin="20dp"
                         android:text="VẬT LÝ 12"
-                        android:textSize="30sp"
+                        android:textSize="25dp"
                         android:textStyle="bold"
                         android:textColor="@color/white"
                         android:background="@drawable/button_physics12"
@@ -146,22 +140,19 @@
                         android:layout_width="70dp"
                         android:layout_height="70dp"
                         android:src="@drawable/img_rocket"
-                        android:layout_gravity="start"
-                        android:layout_marginTop="-5dp"
-                        android:layout_marginStart="300dp"
+                        android:layout_gravity="end"
+                        android:layout_marginEnd="10dp"
                         android:elevation="10dp"/>
                 </FrameLayout>
 
-                <FrameLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
-                    android:clipChildren="false"
-                    android:clipToPadding="false">
+                    android:layout_marginBottom="10dp">
 
                     <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btn_virtual_lab"
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="64dp"
                         android:layout_margin="20dp"
                         android:text="Phòng thí\nnghiệm ảo"
@@ -170,40 +161,45 @@
                         android:textColor="@color/white"
                         android:background="@drawable/button_virtual_lab"
                         android:gravity="center"
-                        android:paddingHorizontal="24dp"/>
+                        android:paddingHorizontal="24dp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
                     <ImageView
                         android:id="@+id/img_chemical_molecules"
                         android:layout_width="70dp"
                         android:layout_height="70dp"
                         android:src="@drawable/img_chemical_molecules"
-                        android:layout_gravity="start"
-                        android:layout_marginTop="15dp"
-                        android:layout_marginStart="10dp"
-                        android:elevation="10dp"/>
+                        app:layout_constraintStart_toStartOf="@id/btn_virtual_lab"
+                        app:layout_constraintTop_toTopOf="@id/btn_virtual_lab"
+                        android:layout_marginStart="-20dp"
+                        android:layout_marginTop="0dp"
+                        android:elevation="10dp" />
 
                     <ImageView
                         android:id="@+id/img_laptop"
                         android:layout_width="70dp"
                         android:layout_height="70dp"
                         android:src="@drawable/img_laptop"
-                        android:layout_gravity="start"
-                        android:layout_marginTop="10dp"
-                        android:layout_marginStart="260dp"
+                        app:layout_constraintEnd_toEndOf="@id/btn_virtual_lab"
+                        app:layout_constraintTop_toTopOf="@id/btn_virtual_lab"
+                        android:layout_marginEnd="10dp"
                         android:elevation="10dp"
-                        android:alpha="0.8"/>
+                        android:alpha="0.8" />
 
                     <ImageView
                         android:id="@+id/img_magnifying_glass"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
-                        android:src="@drawable/ic_magnifying_glass"
-                        android:layout_gravity="start"
-                        android:layout_marginTop="50dp"
-                        android:layout_marginStart="310dp"
+                        android:alpha="0.8"
                         android:elevation="10dp"
-                        android:alpha="0.8"/>
-                </FrameLayout>
+                        android:src="@drawable/ic_magnifying_glass"
+                        app:layout_constraintEnd_toEndOf="@id/btn_virtual_lab"
+                        app:layout_constraintTop_toTopOf="@+id/btn_virtual_lab"
+                        android:layout_marginEnd="20dp"
+                        android:layout_marginTop="40dp"/>
+                </androidx.constraintlayout.widget.ConstraintLayout>
             </LinearLayout>
 
 

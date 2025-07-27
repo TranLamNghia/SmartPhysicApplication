@@ -1,7 +1,9 @@
 package com.example.smartphysicapplication.main
 
 import android.content.Intent
+import android.graphics.Rect
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -27,6 +29,12 @@ class MainActivity : AppCompatActivity() {
         val btn_user: ImageView = findViewById(R.id.user)
         btn_user.setOnClickListener {
             loadFragment(BuyCoursesFragment())
+        }
+
+        val rootView = findViewById<View>(android.R.id.content)
+        rootView.listenToKeyboard { isVisible ->
+            val bottomNav = findViewById<View>(R.id.bottom_navigation)
+            bottomNav?.visibility = if (isVisible) View.GONE else View.VISIBLE
         }
     }
 
@@ -60,5 +68,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun View.listenToKeyboard(onKeyboardVisibilityChanged: (Boolean) -> Unit) {
+        val rootView = this
+        var isKeyboardVisible = false
+        rootView.viewTreeObserver.addOnGlobalLayoutListener {
+            val rect = Rect()
+            rootView.getWindowVisibleDisplayFrame(rect)
+            val screenHeight = rootView.rootView.height
+            val keypadHeight = screenHeight - rect.bottom
+            val visible = keypadHeight > screenHeight * 0.15
 
+            if (visible != isKeyboardVisible) {
+                onKeyboardVisibilityChanged(visible)
+                isKeyboardVisible = visible
+            }
+        }
+    }
 }

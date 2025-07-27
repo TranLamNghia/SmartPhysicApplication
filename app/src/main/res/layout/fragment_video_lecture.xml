@@ -32,8 +32,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="BÀI GIẢNG VIDEO"
-
-                android:textSize="18sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:textColor="@color/green_700" />
         </LinearLayout>
@@ -48,7 +47,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="BÀI 1: DAO ĐỘNG ĐIỀU HÒA"
-            android:textSize="18sp"
+            android:textSize="15sp"
             android:textStyle="bold"
             android:textColor="@color/black"
             android:textAlignment="center"

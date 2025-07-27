@@ -1,180 +1,189 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/img_gamification_background"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
-    <include layout="@layout/layout_header" />
-    <View
+    <ImageView
         android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="#CBFFE7"/>
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/img_gamification_background" />
 
     <LinearLayout
-        android:id="@+id/top_bar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_vertical"
-        android:padding="16dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <ImageView
-                android:id="@+id/btn_back"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/ic_back"
-                android:layout_marginEnd="8dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="GAMIFICATION"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/green_700"
-                android:layout_marginRight="40dp"/>
-
-
-            <ProgressBar
-                android:id="@+id/progressRainbow"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="100dp"
-                android:layout_height="8dp"
-                android:progress="100"
-                android:max="100"
-                android:progressDrawable="@drawable/progress_bar_rainbow"
-                android:layout_marginEnd="16dp"/>
-
-            <ImageView
-                android:id="@+id/btn_pause_gamification"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/ic_pause_circle"
-                android:layout_marginStart="16dp"/>
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="#CBFFE7"/>
-
-    <!-- Question Board -->
-    <LinearLayout
-        android:id="@+id/question_board_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/top_bar"
-        android:layout_centerHorizontal="true"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <FrameLayout
+        <include layout="@layout/layout_header" />
+        <View
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="2dp"
+            android:background="#CBFFE7"/>
 
-            <ImageView
-                android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/top_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:scaleX="1.1"
-                android:scaleY="1"
-                android:src="@drawable/img_question_background"
-                android:layout_gravity="center_horizontal" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-            <TextView
-                android:layout_width="200dp"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_marginTop="100dp"
-                android:text="Một vật có khối lượng 20kg thì có trọng lượng bằng giá tị nào sau đây?"
-                android:textSize="18dp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:textAlignment="center"
-                android:layout_gravity="center_horizontal"/>
-        </FrameLayout>
+                <ImageView
+                    android:id="@+id/btn_back"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/ic_back"
+                    android:layout_marginEnd="8dp" />
 
-    </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="GAMIFICATION"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/green_700"
+                    android:layout_marginRight="20dp"/>
 
-    <!-- Answer Options -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_below="@id/question_board_container"
-        android:layout_marginTop="50dp"
-        android:paddingHorizontal="32dp">
 
+                <ProgressBar
+                    android:id="@+id/progressRainbow"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="100dp"
+                    android:layout_height="8dp"
+                    android:progress="100"
+                    android:max="100"
+                    android:progressDrawable="@drawable/progress_bar_rainbow"/>
+
+                <ImageView
+                    android:id="@+id/btn_pause_gamification"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_pause_circle"
+                    android:layout_marginStart="16dp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="#CBFFE7"/>
+
+        <!-- Question Board -->
+        <LinearLayout
+            android:id="@+id/question_board_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/top_bar"
+            android:layout_centerHorizontal="true"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:scaleX="1.1"
+                    android:scaleY="1"
+                    android:src="@drawable/img_question_background"
+                    android:layout_gravity="center_horizontal" />
+
+                <TextView
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginTop="100dp"
+                    android:text="Một vật có khối lượng 20kg thì có trọng lượng bằng giá tị nào sau đây?"
+                    android:textSize="18dp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    android:textAlignment="center"
+                    android:layout_gravity="center_horizontal"/>
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <!-- Answer Options -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginBottom="16dp">
+            android:orientation="vertical"
+            android:layout_below="@id/question_board_container"
+            android:layout_marginTop="50dp"
+            android:paddingHorizontal="32dp">
 
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btn_answer_a"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:text="A. P=2N"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:background="@drawable/button_white_background"
-                android:layout_marginEnd="8dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="16dp">
 
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btn_answer_b"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:text="B. P=200N"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:background="@drawable/button_white_background"
-                android:layout_marginEnd="8dp" />
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btn_answer_a"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="A. P=2N"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    android:background="@drawable/button_white_background"
+                    android:layout_marginEnd="8dp" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btn_answer_b"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="B. P=200N"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    android:background="@drawable/button_white_background"
+                    android:layout_marginEnd="8dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="16dp">
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btn_answer_c"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="C. P=2000N"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    android:background="@drawable/button_white_background"
+                    android:layout_marginEnd="8dp" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btn_answer_d"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="D. P=20N"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    android:background="@drawable/button_white_background"
+                    android:layout_marginEnd="8dp" />
+            </LinearLayout>
+
         </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginBottom="16dp">
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btn_answer_c"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:text="C. P=2000N"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:background="@drawable/button_white_background"
-                android:layout_marginEnd="8dp" />
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btn_answer_d"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:text="D. P=20N"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:background="@drawable/button_white_background"
-                android:layout_marginEnd="8dp" />
-        </LinearLayout>
-
     </LinearLayout>
-</LinearLayout>
+</FrameLayout>

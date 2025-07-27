@@ -23,14 +23,12 @@
         </activity>
         <activity
             android:name=".main.MainActivity"
-            android:windowSoftInputMode="adjustNothing"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true"
             android:launchMode="singleTop">
         </activity>
         <activity
-            android:name=".main.GamificationActivity"
-            android:windowSoftInputMode="adjustNothing"
-            android:exported="true">
+            android:name=".main.GamificationActivity">
         </activity>
     </application>
 
