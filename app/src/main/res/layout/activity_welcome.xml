@@ -129,7 +129,7 @@
                     android:layout_gravity="start"
                     android:scaleType="centerInside"
                     android:elevation="10dp"
-                    android:src="@drawable/ic_arrow_right"
+                    android:src="@drawable/ic_arrow_right_thick"
                     android:background="@drawable/circle_black_background"/>
             </FrameLayout>
 
@@ -162,7 +162,7 @@
                     android:layout_gravity="start"
                     android:scaleType="centerInside"
                     android:elevation="10dp"
-                    android:src="@drawable/ic_arrow_right"
+                    android:src="@drawable/ic_arrow_right_thick"
                     android:background="@drawable/circle_black_background"/>
             </FrameLayout>
 

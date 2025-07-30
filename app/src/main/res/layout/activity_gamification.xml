@@ -1,32 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:src="@drawable/img_gamification_background" />
+    android:layout_height="match_parent"
+    android:background="@drawable/img_gamification_background">
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
         <include layout="@layout/layout_header" />
+
         <View
             android:layout_width="match_parent"
-            android:layout_height="2dp"
+            android:layout_height="@dimen/divider_height"
             android:background="#CBFFE7"/>
 
+        <!-- Top bar -->
         <LinearLayout
             android:id="@+id/top_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center_vertical"
-            android:padding="16dp">
+            android:padding="@dimen/padding_normal">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -36,43 +33,41 @@
 
                 <ImageView
                     android:id="@+id/btn_back"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                    android:layout_width="@dimen/icon_size"
+                    android:layout_height="@dimen/icon_size"
                     android:src="@drawable/ic_back"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_marginEnd="@dimen/margin_small" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="GAMIFICATION"
-                    android:textSize="15sp"
+                    android:textSize="@dimen/text_label"
                     android:textStyle="bold"
                     android:textColor="@color/green_700"
-                    android:layout_marginRight="20dp"/>
-
+                    android:layout_marginRight="@dimen/margin_normal"/>
 
                 <ProgressBar
                     android:id="@+id/progressRainbow"
                     style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="100dp"
-                    android:layout_height="8dp"
+                    android:layout_width="@dimen/progress_width"
+                    android:layout_height="@dimen/progress_height"
                     android:progress="100"
                     android:max="100"
                     android:progressDrawable="@drawable/progress_bar_rainbow"/>
 
                 <ImageView
                     android:id="@+id/btn_pause_gamification"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="@dimen/icon_size_large"
+                    android:layout_height="@dimen/icon_size_large"
                     android:src="@drawable/ic_pause_circle"
-                    android:layout_marginStart="16dp"/>
+                    android:layout_marginStart="@dimen/margin_small"/>
             </LinearLayout>
-
         </LinearLayout>
 
         <View
             android:layout_width="match_parent"
-            android:layout_height="2dp"
+            android:layout_height="@dimen/divider_height"
             android:background="#CBFFE7"/>
 
         <!-- Question Board -->
@@ -80,35 +75,33 @@
             android:id="@+id/question_board_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/top_bar"
-            android:layout_centerHorizontal="true"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
 
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content">
 
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="@dimen/question_background_width"
+                    android:layout_height="@dimen/question_background_height"
                     android:scaleX="1.1"
                     android:scaleY="1"
                     android:src="@drawable/img_question_background"
                     android:layout_gravity="center_horizontal" />
 
                 <TextView
-                    android:layout_width="200dp"
+                    android:id="@+id/text_question"
+                    android:layout_width="@dimen/question_text_width"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginTop="100dp"
-                    android:text="Một vật có khối lượng 20kg thì có trọng lượng bằng giá tị nào sau đây?"
-                    android:textSize="18dp"
+                    android:layout_marginTop="@dimen/margin_large"
+                    android:text="Một vật có khối lượng 20kg thì có trọng lượng bằng giá trị nào sau đây?"
+                    android:textSize="@dimen/text_question"
                     android:textStyle="bold"
                     android:textColor="@color/black"
                     android:textAlignment="center"
                     android:layout_gravity="center_horizontal"/>
             </FrameLayout>
-
         </LinearLayout>
 
         <!-- Answer Options -->
@@ -116,74 +109,112 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_below="@id/question_board_container"
-            android:layout_marginTop="50dp"
-            android:paddingHorizontal="32dp">
+            android:layout_marginTop="@dimen/margin_normal"
+            android:paddingStart="@dimen/padding_large"
+            android:paddingEnd="@dimen/padding_large">
 
+            <!-- Dòng 1 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="@dimen/margin_small">
 
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/btn_answer_a"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
+                    android:layout_height="@dimen/button_height"
                     android:layout_weight="1"
                     android:text="A. P=2N"
-                    android:textSize="16sp"
+                    android:textSize="@dimen/text_answer"
                     android:textStyle="bold"
                     android:textColor="@color/black"
                     android:background="@drawable/button_white_background"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_marginEnd="@dimen/margin_small" />
 
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/btn_answer_b"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
+                    android:layout_height="@dimen/button_height"
                     android:layout_weight="1"
                     android:text="B. P=200N"
-                    android:textSize="16sp"
+                    android:textSize="@dimen/text_answer"
                     android:textStyle="bold"
                     android:textColor="@color/black"
-                    android:background="@drawable/button_white_background"
-                    android:layout_marginEnd="8dp" />
+                    android:background="@drawable/button_white_background"/>
             </LinearLayout>
 
+            <!-- Dòng 2 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="@dimen/margin_small">
 
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/btn_answer_c"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
+                    android:layout_height="@dimen/button_height"
                     android:layout_weight="1"
                     android:text="C. P=2000N"
-                    android:textSize="16sp"
+                    android:textSize="@dimen/text_answer"
                     android:textStyle="bold"
                     android:textColor="@color/black"
                     android:background="@drawable/button_white_background"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_marginEnd="@dimen/margin_small" />
 
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/btn_answer_d"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
+                    android:layout_height="@dimen/button_height"
                     android:layout_weight="1"
                     android:text="D. P=20N"
-                    android:textSize="16sp"
+                    android:textSize="@dimen/text_answer"
                     android:textStyle="bold"
                     android:textColor="@color/black"
-                    android:background="@drawable/button_white_background"
-                    android:layout_marginEnd="8dp" />
+                    android:background="@drawable/button_white_background"/>
             </LinearLayout>
+        </LinearLayout>
 
+        <!-- Feedback -->
+        <LinearLayout
+            android:id="@+id/layout_feedback"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="@dimen/padding_large"
+            android:visibility="visible">
+
+            <TextView
+                android:id="@+id/text_feedback"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lời giải sẽ hiển thị ở đây"
+                android:textSize="@dimen/text_feedback"
+                android:gravity="center"
+                android:background="@drawable/button_chat_background"
+                android:textColor="@color/black"
+                android:textStyle="italic"
+                android:padding="@dimen/padding_normal" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_next_question"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="@dimen/padding_normal"
+                android:text="Câu hỏi tiếp theo"
+                android:textSize="10sp"
+                android:textColor="@android:color/white"
+                android:drawableEnd="@drawable/ic_arrow_right"
+                android:background="@drawable/button_green_gradient"
+                android:drawablePadding="8dp"
+                android:backgroundTint="@null"
+                android:visibility="visible"
+                android:layout_marginTop="@dimen/margin_small"/>
         </LinearLayout>
     </LinearLayout>
-</FrameLayout>
+
+</ScrollView>
