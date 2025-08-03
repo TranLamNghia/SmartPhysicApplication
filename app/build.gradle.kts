@@ -15,6 +15,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+    }
+
+    defaultConfig {
+        buildConfigField ("String", "GEMINI_API_KEY", "\"${property("GEMINI_API_KEY")}\"")
     }
 
     buildTypes {
@@ -25,6 +30,9 @@ android {
                 "proguard-rules.pro"
             )
         }
+    }
+    buildFeatures {
+        buildConfig = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -52,4 +60,9 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer:$media3Version")
 
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 }

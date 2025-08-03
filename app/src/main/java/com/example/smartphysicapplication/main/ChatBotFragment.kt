@@ -1,7 +1,10 @@
 package com.example.smartphysicapplication.main
 
-import android.graphics.Rect
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,9 +13,23 @@ import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.smartphysicapplication.BuildConfig
 import com.example.smartphysicapplication.R
 import com.example.smartphysicapplication.adapter.ChatAdapter
+import com.example.smartphysicapplication.api.Content
+import com.example.smartphysicapplication.api.GeminiApi
+import com.example.smartphysicapplication.api.GeminiRequest
+import com.example.smartphysicapplication.api.Part
 import com.example.smartphysicapplication.model.ChatMessage
+import com.google.ai.client.generativeai.GenerativeModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class ChatBotFragment : Fragment() {
 
@@ -21,6 +38,7 @@ class ChatBotFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var chatAdapter: ChatAdapter
     private val chatMessages = mutableListOf<ChatMessage>()
+    private lateinit var apiService: GeminiApi
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -47,33 +65,43 @@ class ChatBotFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = chatAdapter
 
+        val retrofit = Retrofit.Builder().baseUrl("https://generativelanguage.googleapis.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+        apiService = retrofit.create(GeminiApi::class.java)
+
         val input = view.findViewById<EditText>(R.id.chat_input)
         btnSend.setOnClickListener {
+            val generativeModel = GenerativeModel(
+                modelName = "gemini-1.5-flash",
+                apiKey = BuildConfig.GEMINI_API_KEY
+            )
+
             welcomeSection.visibility = View.GONE
             suggestedSection.visibility = View.GONE
             recyclerView.visibility = View.VISIBLE
 
-            chatMessages.add(ChatMessage(getString(R.string.question_user), isUser = true))
-            chatAdapter.notifyItemInserted(chatMessages.size - 1)
-            recyclerView.scrollToPosition(chatMessages.size - 1)
-
-            input.text.clear()
-
-            recyclerView.postDelayed({
-                chatMessages.add(ChatMessage(getString(R.string.answer_bot), isUser = false))
+            val userInput = input.text.toString().trim()
+            if (userInput.isNotEmpty()) {
+                chatMessages.add(ChatMessage(userInput, isUser = true))
                 chatAdapter.notifyItemInserted(chatMessages.size - 1)
                 recyclerView.scrollToPosition(chatMessages.size - 1)
+                input.text.clear()
 
-                recyclerView.postDelayed({
-                    chatMessages.add(ChatMessage("Hãy cùng xem hình sau để rõ hơn: ", isUser = false, imageResId = R.drawable.img_answer_bot_image))
+                val physicsPrompt = "Bạn là một trợ lý AI chuyên về vật lý học, được thiết kế để hỗ trợ học sinh trung học và sinh viên đại học.\n" +
+                        "\n" +
+                        "Quy tắc trả lời:\n" +
+                        "1. Nếu câu hỏi mang tính lý thuyết, hãy trả lời ngắn gọn, đúng trọng tâm, tránh lan man.\n" +
+                        "2. Nếu có thể minh hoạ bằng hình ảnh, hãy mô tả hình ảnh phù hợp để hệ thống sinh ảnh từ mô tả đó.\n" +
+                        "3. Nếu câu hỏi không liên quan đến vật lý, trả lời: \"Vui lòng hỏi một câu hỏi liên quan đến vật lý.\". Câu hỏi: $userInput"
+                println("Physics Prompt: $physicsPrompt") // Log để debug
+                MainScope().launch {
+                    val response = generativeModel.generateContent(physicsPrompt)
+                    chatMessages.add(ChatMessage(response.text!!, isUser = false))
                     chatAdapter.notifyItemInserted(chatMessages.size - 1)
                     recyclerView.scrollToPosition(chatMessages.size - 1)
-                }, 400)
-
-            }, 800)
-
+                }
+            }
         }
     }
-
-
 }
