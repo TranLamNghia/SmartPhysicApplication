@@ -19,7 +19,7 @@
     <dimen name="text_feedback">14sp</dimen>
 
     <!-- Button -->
-    <dimen name="button_height">48dp</dimen>
+    <dimen name="button_height">55</dimen>
 
     <!-- Icon -->
     <dimen name="icon_size">30dp</dimen>

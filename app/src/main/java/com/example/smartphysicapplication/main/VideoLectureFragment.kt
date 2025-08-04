@@ -52,8 +52,6 @@ class VideoLectureFragment : Fragment() {
         playerView = view.findViewById(R.id.player_view)
         btnBack = view.findViewById(R.id.btn_back)
 
-        val subjectTitle = arguments?.getString("subject_title")
-        val topicName = arguments?.getString("topic_name")
         val videoId = arguments?.getString("video_id")
 
         btnBack.setOnClickListener {
@@ -64,7 +62,7 @@ class VideoLectureFragment : Fragment() {
         playerView.player = player
         if (!videoId.isNullOrEmpty()) {
             try {
-                val uri = Uri.parse("android.resource://${requireContext().packageName}/raw/video_test")
+                val uri = Uri.parse("android.resource://${requireContext().packageName}/raw/video_bai_1")
                 val mediaItem = MediaItem.fromUri(uri)
                 player?.setMediaItem(mediaItem)
 

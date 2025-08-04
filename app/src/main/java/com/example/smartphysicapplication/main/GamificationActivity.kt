@@ -57,7 +57,7 @@ class GamificationActivity : AppCompatActivity(){
 
         nextQuestionBtn = findViewById(R.id.btn_next_question)
         nextQuestionBtn.setOnClickListener {
-            if (currentQuestionIndex == 2) currentQuestionIndex = 0
+            if (currentQuestionIndex == 4) currentQuestionIndex = 0
             else currentQuestionIndex++
             animateQuestionTransition {
                 showQuestion()
@@ -95,13 +95,12 @@ class GamificationActivity : AppCompatActivity(){
     private fun showQuestion() {
         val question = questionList[currentQuestionIndex]
 
-        val questionText = findViewById<TextView>(R.id.text_question)  // hoặc tìm view của bạn
+        val questionText = findViewById<TextView>(R.id.text_question)
         val btnA = findViewById<AppCompatButton>(R.id.btn_answer_a)
         val btnB = findViewById<AppCompatButton>(R.id.btn_answer_b)
         val btnC = findViewById<AppCompatButton>(R.id.btn_answer_c)
         val btnD = findViewById<AppCompatButton>(R.id.btn_answer_d)
         val feedbackLayout = findViewById<LinearLayout>(R.id.layout_feedback)
-        val feedbackText = findViewById<TextView>(R.id.text_feedback)
         val nextBtn = findViewById<Button>(R.id.btn_next_question)
 
         // Reset trạng thái giao diện
@@ -116,6 +115,7 @@ class GamificationActivity : AppCompatActivity(){
         val buttons = listOf(btnA, btnB, btnC, btnD)
         buttons.forEachIndexed { index, button ->
             button.isEnabled = true
+            button.setTypeface(null, Typeface.NORMAL)
             button.text = "${'A' + index}. ${question.options[index]}"
             button.setOnClickListener {
                 button.isEnabled = false
@@ -140,8 +140,8 @@ class GamificationActivity : AppCompatActivity(){
     fun setStyledFeedback(isCorrect: Boolean, explanation: String) {
         val feedbackText = findViewById<TextView>(R.id.text_feedback)
 
-        val highlight = if (isCorrect) "Chính xác!\n" else "Sai rồi.\n"
-        val fullText = "$highlight ${if (isCorrect) explanation else "Gợi ý: $explanation"}"
+        val highlight = if (isCorrect) "Chính xác!" else "Sai rồi.\n"
+        val fullText = "$highlight ${if (isCorrect) "" else "Gợi ý: $explanation"}"
 
         val spannable = SpannableString(fullText)
 
@@ -192,21 +192,38 @@ class GamificationActivity : AppCompatActivity(){
 
 private val questionList = listOf(
     Question(
-        text = "Một vật có khối lượng 20kg thì có trọng lượng bằng giá trị nào sau đây?",
-        options = listOf("P=2N", "P=200N", "P=2000N", "P=20N"),
-        correctAnswerIndex = 1,
-        explanation = "P = m × g = 20kg × 10 = 200N"
+        text = "Một vật đang dao động với chu kì là 0,3 s, tần số dao động của vật là",
+        options = listOf("0,3 Hz", "0,33 Hz", "3,33 Hz", "33 Hz"),
+        correctAnswerIndex = 2,
+        explanation = "Tần số dao động của vật là: f = 1 / T"
     ),
     Question(
-        text = "Lực nào sau đây là lực tiếp xúc?",
-        options = listOf("Trọng lực", "Lực đàn hồi", "Lực hấp dẫn", "Lực điện"),
+        text = "Chu kì dao động là",
+        options = listOf(
+            "Thời gian chuyển động của vật.",
+            "Thời gian vật thực hiện một dao động toàn phần.",
+            "Số dao động toàn phần mà vật thực hiện được.",
+            "Số dao động toàn phần mà vật thực hiện trong một giây."
+        ),
         correctAnswerIndex = 1,
-        explanation = "Lực đàn hồi là lực tiếp xúc do vật bị biến dạng tạo ra."
+        explanation = "Chu kỳ là thời gian cho 1 dao động toàn phần, đơn vị giây."
     ),
     Question(
-        text = "Công thức tính vận tốc là gì?",
-        options = listOf("v = s/t", "v = t/s", "v = a.t", "v = m.a"),
-        correctAnswerIndex = 0,
-        explanation = "v = s / t, trong đó s là quãng đường, t là thời gian."
+        text = "Một ô tô đi được 180 km trong 3 giờ. Vận tốc trung bình là:",
+        options = listOf("50 km/h", "60 km/h", "70 km/h", "90 km/h"),
+        correctAnswerIndex = 1,
+        explanation = "Vận tốc = quãng đường / thời gian"
+    ),
+    Question(
+        text = "Công thức tính công cơ học là:",
+        options = listOf("A = F + s", "A = F × s × cos(α)", "A = F × t", "A = m × g × h"),
+        correctAnswerIndex = 1,
+        explanation = "Công = lực × quãng đường × cos(góc giữa lực và hướng chuyển động)."
+    ),
+    Question(
+        text = "Khi tăng biên độ dao động điều hòa, điều nào sau đây đúng?",
+        options = listOf("Chu kỳ tăng", "Tần số tăng", "Biên độ tăng nhưng chu kỳ không đổi", "Cả tần số và chu kỳ đều tăng"),
+        correctAnswerIndex = 2,
+        explanation = "Trong dao động điều hòa, T và f không phụ thuộc biên độ."
     )
 )

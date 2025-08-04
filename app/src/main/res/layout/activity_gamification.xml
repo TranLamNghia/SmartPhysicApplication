@@ -127,8 +127,9 @@
                     android:layout_height="@dimen/button_height"
                     android:layout_weight="1"
                     android:text="A. P=2N"
+                    android:textAllCaps="false"
                     android:textSize="@dimen/text_answer"
-                    android:textStyle="bold"
+                    android:textStyle="normal"
                     android:textColor="@color/black"
                     android:background="@drawable/button_white_background"
                     android:layout_marginEnd="@dimen/margin_small" />
@@ -139,8 +140,9 @@
                     android:layout_height="@dimen/button_height"
                     android:layout_weight="1"
                     android:text="B. P=200N"
+                    android:textAllCaps="false"
                     android:textSize="@dimen/text_answer"
-                    android:textStyle="bold"
+                    android:textStyle="normal"
                     android:textColor="@color/black"
                     android:background="@drawable/button_white_background"/>
             </LinearLayout>
@@ -159,8 +161,9 @@
                     android:layout_height="@dimen/button_height"
                     android:layout_weight="1"
                     android:text="C. P=2000N"
+                    android:textAllCaps="false"
                     android:textSize="@dimen/text_answer"
-                    android:textStyle="bold"
+                    android:textStyle="normal"
                     android:textColor="@color/black"
                     android:background="@drawable/button_white_background"
                     android:layout_marginEnd="@dimen/margin_small" />
@@ -171,8 +174,9 @@
                     android:layout_height="@dimen/button_height"
                     android:layout_weight="1"
                     android:text="D. P=20N"
+                    android:textAllCaps="false"
                     android:textSize="@dimen/text_answer"
-                    android:textStyle="bold"
+                    android:textStyle="normal"
                     android:textColor="@color/black"
                     android:background="@drawable/button_white_background"/>
             </LinearLayout>

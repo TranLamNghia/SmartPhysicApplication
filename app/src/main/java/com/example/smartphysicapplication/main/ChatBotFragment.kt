@@ -1,10 +1,6 @@
 package com.example.smartphysicapplication.main
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,18 +12,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.smartphysicapplication.BuildConfig
 import com.example.smartphysicapplication.R
 import com.example.smartphysicapplication.adapter.ChatAdapter
-import com.example.smartphysicapplication.api.Content
 import com.example.smartphysicapplication.api.GeminiApi
-import com.example.smartphysicapplication.api.GeminiRequest
-import com.example.smartphysicapplication.api.Part
 import com.example.smartphysicapplication.model.ChatMessage
 import com.google.ai.client.generativeai.GenerativeModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import okhttp3.Interceptor
-import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 

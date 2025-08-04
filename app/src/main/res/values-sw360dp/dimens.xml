@@ -15,11 +15,11 @@
     <!-- Text sizes -->
     <dimen name="text_label">15sp</dimen>
     <dimen name="text_question">14sp</dimen>
-    <dimen name="text_answer">14sp</dimen>
+    <dimen name="text_answer">11sp</dimen>
     <dimen name="text_feedback">14sp</dimen>
 
     <!-- Button -->
-    <dimen name="button_height">35dp</dimen>
+    <dimen name="button_height">45dp</dimen>
 
     <!-- Icon -->
     <dimen name="icon_size">30dp</dimen>
