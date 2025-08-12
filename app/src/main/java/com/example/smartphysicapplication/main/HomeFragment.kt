@@ -19,6 +19,7 @@ class HomeFragment : Fragment() {
     private lateinit var btnPhysics10: Button
     private lateinit var btnPhysics11: Button
     private lateinit var btnPhysics12: Button
+    private lateinit var btnVirtualLab: Button
 
     private lateinit var learningPathIcon: LinearLayout
     private lateinit var gamificationPathIcon: LinearLayout
@@ -36,6 +37,7 @@ class HomeFragment : Fragment() {
         btnPhysics10 = view.findViewById(R.id.btn_physics_10)
         btnPhysics11 = view.findViewById(R.id.btn_physics_11)
         btnPhysics12 = view.findViewById(R.id.btn_physics_12)
+        btnVirtualLab = view.findViewById(R.id.btn_virtual_lab)
 
         learningPathIcon = view.findViewById(R.id.btn_learning_path)
         gamificationPathIcon= view.findViewById(R.id.btn_gamification)
@@ -55,6 +57,10 @@ class HomeFragment : Fragment() {
 
         btnPhysics12.setOnClickListener {
             (activity as? MainActivity)?.loadFragment(PhysicsSubjectFragment.newInstance("VẬT LÝ 12"))
+        }
+
+        btnVirtualLab.setOnClickListener {
+            (activity as? MainActivity)?.loadFragment(ModelViewerNativeFragment())
         }
 
         learningPathIcon.setOnClickListener {

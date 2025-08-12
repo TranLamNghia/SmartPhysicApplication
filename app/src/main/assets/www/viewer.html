@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <!-- Nạp model-viewer CỤC BỘ (offline) -->
+    <script type="module" src="./model-viewer.min.js"></script>
+    <style>
+        html, body { height:100%; margin:0; background:#111; color:#fff; font-family:system-ui, sans-serif; }
+        #wrap { position:relative; width:100vw; height:100vh; overflow:hidden; }
+        model-viewer { width:100%; height:100%; background:#111; }
+        .hud {
+          position:absolute; left:12px; top:12px; display:flex; gap:8px; align-items:center;
+          background:rgba(0,0,0,.35); padding:8px 10px; border-radius:12px; backdrop-filter: blur(6px);
+        }
+        .hud button, .hud select {
+          background:#222; color:#fff; border:1px solid #333; border-radius:10px; padding:6px 10px;
+        }
+        .progress {
+          position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+          background:#0008; padding:10px 14px; border-radius:10px; display:none;
+        }
+    </style>
+</head>
+<body>
+<div id="wrap">
+    <model-viewer id="mv"
+                  src=""
+                  camera-controls
+                  auto-rotate
+                  exposure="1"
+                  shadow-intensity="0.6"
+                  disable-zoom="false"
+                  touch-action="pan-y">
+    </model-viewer>
+
+    <div class="hud">
+        <button id="toggle-autorotate">Auto-rotate</button>
+        <button id="reset-camera">Reset cam</button>
+        <select id="env">
+            <option value="">No HDR</option>
+            <option value="./env/default.hdr">Default HDR</option>
+        </select>
+    </div>
+
+    <div id="progress" class="progress">Loading… <span id="pct">0%</span></div>
+</div>
+
+<script>
+    const mv = document.getElementById('mv');
+    const progressBox = document.getElementById('progress');
+    const pct = document.getElementById('pct');
+
+    // Lấy đường dẫn model từ query (?src=...)
+    const params = new URLSearchParams(location.search);
+    const src = params.get('src') || '../models/Voltmeter.glb';
+    mv.src = src;
+
+    // Sự kiện tiến độ & load
+    mv.addEventListener('progress', (e) => {
+        const p = e.detail?.totalProgress ?? 0;
+        progressBox.style.display = (p < 1) ? 'block' : 'none';
+        pct.textContent = Math.round(p*100) + '%';
+        if (window.Android && window.Android.onProgress) {
+            window.Android.onProgress(Math.round(p*100));
+        }
+    });
+
+    mv.addEventListener('load', () => {
+        progressBox.style.display = 'none';
+        // Thông báo về Android
+        if (window.Android && window.Android.onModelLoaded) {
+            window.Android.onModelLoaded(mv.src);
+        }
+    });
+
+    // Nút HUD
+    document.getElementById('toggle-autorotate').onclick = () => {
+        const enabled = mv.hasAttribute('auto-rotate');
+        if (enabled) mv.removeAttribute('auto-rotate'); else mv.setAttribute('auto-rotate', '');
+        if (window.Android?.onToggleAutoRotate) window.Android.onToggleAutoRotate(!enabled);
+    };
+    document.getElementById('reset-camera').onclick = () => {
+        mv.resetTurntableRotation();
+        mv.cameraOrbit = '0deg 75deg 105%';
+    };
+    document.getElementById('env').onchange = (ev) => {
+        const val = ev.target.value;
+        if (val) mv.environmentImage = val; else mv.removeAttribute('environment-image');
+    };
+
+    // API cho Android gọi từ Kotlin:
+    window.setModelSrc = (path) => { mv.src = path; };
+    window.setAutoRotate = (on) => {
+        if (on) mv.setAttribute('auto-rotate',''); else mv.removeAttribute('auto-rotate');
+    };
+    let moveMode = false
+    let lastX = 0, lastY = 0
+    let target = {x:0, y:0, z:0}  // meter
+
+    // Nút bật Move mode (bạn có thể thêm vào HUD)
+    window.toggleMoveMode = () => { moveMode = !moveMode }
+
+    // Cập nhật camera target từ Android
+    window.setCameraTarget = (x, y, z) => {
+        target = {x, y, z}
+        mv.cameraTarget = `${x}m ${y}m ${z}m`
+    }
+    window.setCameraOrbit = (thetaDeg, phiDeg, radiusPercent) => {
+        mv.cameraOrbit = `${thetaDeg}deg ${phiDeg}deg ${radiusPercent}%`
+    }
+
+    mv.addEventListener('pointerdown', (e) => { lastX = e.clientX; lastY = e.clientY })
+    mv.addEventListener('pointermove', (e) => {
+        if (!moveMode || !(e.buttons & 1)) return
+        const dx = e.clientX - lastX
+        const dy = e.clientY - lastY
+        lastX = e.clientX; lastY = e.clientY
+        // Hệ số chuyển đổi px -> mét (tuỳ chỉnh theo cảm giác)
+        const s = 0.002
+        target.x += dx * s
+        target.z += dy * s   // kéo lên/xuống dịch theo trục Z
+        mv.cameraTarget = `${target.x}m ${target.y}m ${target.z}m`
+    })
+</script>
+</body>
+</html>
+

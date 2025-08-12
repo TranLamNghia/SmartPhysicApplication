@@ -78,7 +78,6 @@ class ChatBotFragment : Fragment() {
                 input.text.clear()
 
                 val physicsPrompt = "Bạn là một trợ lý AI chuyên về vật lý học, được thiết kế để hỗ trợ học sinh trung học và sinh viên đại học.\n" +
-                        "\n" +
                         "Quy tắc trả lời:\n" +
                         "1. Nếu câu hỏi mang tính lý thuyết, hãy trả lời ngắn gọn, đúng trọng tâm, tránh lan man.\n" +
                         "2. Nếu có thể minh hoạ bằng hình ảnh, hãy mô tả hình ảnh phù hợp để hệ thống sinh ảnh từ mô tả đó.\n" +

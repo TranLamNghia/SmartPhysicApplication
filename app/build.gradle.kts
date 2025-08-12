@@ -33,6 +33,7 @@ android {
     }
     buildFeatures {
         buildConfig = true
+        viewBinding = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -58,11 +59,11 @@ dependencies {
     val media3Version = "1.3.1"
     // For media playback using ExoPlayer (part of Media3)
     implementation("androidx.media3:media3-exoplayer:$media3Version")
-
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
-
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+
+    implementation("io.github.sceneview:sceneview:2.3.0")
 }
