@@ -1,20 +1,18 @@
 package com.example.smartphysicapplication.main
 
 import android.os.Bundle
-import android.view.View
+import android.view.*
 import android.widget.Button
 import androidx.fragment.app.Fragment
 import com.example.smartphysicapplication.R
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.ScaleGestureDetector
-import android.view.ViewGroup
 import io.github.sceneview.SceneView
+import io.github.sceneview.environment.*
+import io.github.sceneview.math.Direction
 import io.github.sceneview.math.Position
+import io.github.sceneview.math.Scale
 import io.github.sceneview.node.LightNode
 import io.github.sceneview.node.ModelNode
-import io.github.sceneview.environment.*
-import io.github.sceneview.math.Scale
+import kotlin.math.*
 
 class ModelViewerNativeFragment : Fragment() {
 
@@ -24,10 +22,32 @@ class ModelViewerNativeFragment : Fragment() {
     private val cubeName = "Cube"
     private val jetName  = "Jet"
 
-    private var height = 6f                     // khoảng cách camera đến mặt phẳng (OY)
     private var centerX = 0f
+    private var centerY = 0f
     private var centerZ = 0f
+
+    private var yawDeg   = 180f
+    private var pitchDeg = -15f
+    private var radius   = 1f      // khoảng cách (zoom)
+
+    private var fovDeg   = 60f      // dùng để scale pan theo zoom
+
+    private var orbitTargetX = 0f      // tâm quỹ đạo (ví dụ: tâm mặt bàn)
+    private var orbitTargetY = 0.8f
+    private var orbitTargetZ = 0f
+
+    // Giới hạn
+    private val minPitchDegDown = -85f
+    private val maxPitchDegDown =  -5f
+
+    private var touchingModel = false
+    private var lastX = 0f
+    private var lastY = 0f
     private lateinit var scaleDetector: ScaleGestureDetector
+
+    // ---- Giới hạn vùng pan cho EYE (0.8x2 -> biên ±3.5m) ----
+    private val eyeHalfW = 0.4f
+    private val eyeHalfH = 1f
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -40,26 +60,25 @@ class ModelViewerNativeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Ánh sáng cơ bản
+        // Đèn trực tiếp
         sceneView.mainLightNode = LightNode(
-            sceneView.engine,
-            sceneView.engine.entityManager.create()   // <-- truyền entity
-        ).apply {
-            intensity = 100_000f
-        }
+            sceneView.engine, sceneView.engine.entityManager.create()
+        ).apply { intensity = 80_000f }
 
-        // Chỉ cho ZOOM
-        enableTopDownOnly(initialHeight = 15f)
-
-        // Nạp GLB từ assets (đường dẫn trong app/src/main/assets/)
+        // 1) Nạp GLB
         loadGlb("models/Untitled.glb")
-        rootModel!!.childNodes.forEach { android.util.Log.d("Nodes", it.name ?: "<no name>") }
-        setNodeScale("Cube", 3.0f)
-        setNodeScale("Jet",  3.0f)
 
+        // 2) Scale riêng nếu cần
+        setNodeScale(cubeName, 3.0f)
+        setNodeScale(jetName,  3.0f)
+
+        // 3) HDR environment
         setupEnvironment()
 
-        // Nút bật/tắt đối tượng
+        // 4) Điều khiển: pinch=zoom, pan 1 ngón khi chạm nền / 2 ngón pan
+        enableObliqueControls()
+
+        // Nút bật/ẩn
         view.findViewById<Button>(R.id.btnToggleCube).setOnClickListener {
             toggleChildVisibility(cubeName)
         }
@@ -69,122 +88,200 @@ class ModelViewerNativeFragment : Fragment() {
     }
 
     private fun loadGlb(assetPath: String) {
-        // Tạo instance từ assets
-        val instance = sceneView.modelLoader.createModelInstance(assetPath)
-
-        // Gốc của mô hình (chứa toàn bộ các node con bên trong GLB)
-        rootModel = ModelNode(
-            modelInstance = instance,
-            autoAnimate = false,
-            scaleToUnits = 1.0f     // tuỳ scene của bạn
-        )
-
+        val inst = sceneView.modelLoader.createModelInstance(assetPath)
+        rootModel = ModelNode(modelInstance = inst, autoAnimate = false, scaleToUnits = 1.0f)
         sceneView.addChildNode(rootModel!!)
-
-        // Đặt camera lùi ra một chút
-        sceneView.cameraNode.position = Position(0.0f, 0.0f, 4.0f)
     }
 
     private fun setNodeScale(nodeName: String, uniform: Float) {
-        rootModel?.childNodes?.firstOrNull { it.name == nodeName }?.let { n ->
-            n.scale = Scale(uniform)         // scale đều X=Y=Z
-            // hoặc: n.scale = Scale(x, y, z)
+        rootModel?.childNodes?.firstOrNull { it.name == nodeName }?.let {
+            it.scale = Scale(uniform)
         }
     }
 
     private fun setupEnvironment() {
-        // Tạo skybox + ánh sáng môi trường từ HDR
-        val env = sceneView.environmentLoader.createHDREnvironment(
-            "environments/studio.hdr"  // đường dẫn trong assets
-        )
-        if (env != null) {
-            sceneView.environment = env
-        }
-
-        // Tăng độ sáng ánh sáng gián tiếp nếu cần
-        sceneView.environment?.indirectLight?.intensity = 30_000f
+        sceneView.environment = sceneView.environmentLoader
+            .createHDREnvironment("environments/studio.hdr")!!
+        sceneView.environment?.indirectLight?.intensity = 20_000f
     }
 
-    /** Bật/tắt node con theo TÊN (so với Blender) */
     private fun toggleChildVisibility(childName: String) {
-        val parent = rootModel ?: return
-        val child = parent.childNodes.firstOrNull { it.name == childName } ?: return
+        val child = rootModel?.childNodes?.firstOrNull { it.name == childName } ?: return
         child.isVisible = !child.isVisible
     }
 
-    /** Khoá xoay & pan, chỉ cho pinch-zoom (đổi khoảng cách camera) */
-    private fun enableZoomOnly() {
-        // Vô hiệu hoá camera manipulator mặc định (nếu có)
-        sceneView.cameraManipulator = null
+    /** Tính eye từ (yaw, pitch, radius) và đặt camera nhìn về orbitTarget */
+    private fun updateOrbitCamera() {
+        val yawRad   = Math.toRadians(yawDeg.toDouble())
+        val pitchRad = Math.toRadians(pitchDeg.toDouble())
 
-        val scaleDetector = ScaleGestureDetector(
-            requireContext(),
-            object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
-                override fun onScale(detector: ScaleGestureDetector): Boolean {
-                    val cam = sceneView.cameraNode
-                    val curZ = cam.position.z
-                    // scaleFactor > 1 => phóng to => giảm khoảng cách một chút
-                    val nextZ = (curZ / detector.scaleFactor).coerceIn(1.5f, 15f)
-                    cam.position = Position(cam.position.x, cam.position.y, nextZ)
-                    return true
-                }
-            }
+        // Hệ trục: +Y up, +Z "trước". Eye = target + offset theo cầu
+        val offsetX = (radius * Math.cos(pitchRad) * Math.sin(yawRad)).toFloat()
+        val offsetY = (radius * Math.sin(pitchRad)).toFloat()              // >= 0 khi pitch>0
+        val offsetZ = (radius * Math.cos(pitchRad) * Math.cos(yawRad)).toFloat()
+
+        val eyeX = orbitTargetX + offsetX
+        val eyeY = orbitTargetY + offsetY
+        val eyeZ = orbitTargetZ + offsetZ
+
+        sceneView.cameraNode.position = Position(eyeX, eyeY, eyeZ)
+        sceneView.cameraNode.lookAt(
+            Position(orbitTargetX, orbitTargetY, orbitTargetZ),
+            upDirection = io.github.sceneview.math.Direction(y = 1f)
         )
-
-        sceneView.setOnTouchListener { _: View, event: MotionEvent ->
-            scaleDetector.onTouchEvent(event)
-            // Trả true để chặn các gesture xoay/pan mặc định
-            true
-        }
+        sceneView.invalidate()
     }
 
-    private fun enableTopDownOnly(
-        initialHeight: Float = 6f,
-        minHeight: Float = 1.5f,
-        maxHeight: Float = 30f
+    // -------------------- Controls --------------------
+    private fun enableObliqueControls(
+        minRadius: Float = 0.3f,
+        maxRadius: Float = 2f
     ) {
-        sceneView.cameraManipulator = null      // tự điều khiển camera
-        height = initialHeight
+        sceneView.cameraManipulator = null
 
-        // Pinch = đổi độ cao (zoom)
+        // Pinch = zoom (đổi radius)
         scaleDetector = ScaleGestureDetector(
             requireContext(),
             object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
                 override fun onScale(d: ScaleGestureDetector): Boolean {
-                    height = (height / d.scaleFactor).coerceIn(minHeight, maxHeight)
-                    updateTopDownCamera()
+                    radius = (radius / d.scaleFactor).coerceIn(minRadius, maxRadius)
+                    updateCamera()
                     return true
                 }
-            }
-        )
+            })
 
-        // (tuỳ chọn) Pan 2 ngón để dời tâm quan sát trên mặt phẳng OX–OZ
-        var lastCx = 0f; var lastCz = 0f
         sceneView.setOnTouchListener { _, ev ->
             scaleDetector.onTouchEvent(ev)
 
-            if (ev.pointerCount == 2 && ev.actionMasked == MotionEvent.ACTION_MOVE) {
-                // đơn giản hoá: dùng chênh lệch ngón 0 để tịnh tiến tâm
-                val dx = ev.getX(0) - lastCx
-                val dy = ev.getY(0) - lastCz
-                lastCx = ev.getX(0); lastCz = ev.getY(0)
-
-                val panSpeed = 0.01f            // px -> mét, chỉnh theo cảm giác
-                centerX -= dx * panSpeed
-                centerZ += dy * panSpeed
-                updateTopDownCamera()
+            when (ev.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    lastX = ev.x; lastY = ev.y
+                    touchingModel = pickNodeAt(ev.x, ev.y) != null
+                }
+                MotionEvent.ACTION_POINTER_DOWN -> if (ev.pointerCount == 2) {
+                    lastX = (ev.getX(0) + ev.getX(1)) / 2f
+                    lastY = (ev.getY(0) + ev.getY(1)) / 2f
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    // 1 ngón, không zoom, KHÔNG chạm model => pan
+                    if (!scaleDetector.isInProgress && ev.pointerCount == 1 && !touchingModel) {
+                        val dx = ev.x - lastX
+                        val dy = ev.y - lastY
+                        lastX = ev.x; lastY = ev.y
+                        panScreenPlane(dx, dy)
+                    }
+                    // 2 ngón => pan luôn
+                    else if (!scaleDetector.isInProgress && ev.pointerCount == 2) {
+                        val cx = (ev.getX(0) + ev.getX(1)) / 2f
+                        val cy = (ev.getY(0) + ev.getY(1)) / 2f
+                        val dx = cx - lastX
+                        val dy = cy - lastY
+                        lastX = cx; lastY = cy
+                        panScreenPlane(dx, dy)
+                    }
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    touchingModel = false
+                }
             }
             true
         }
 
-        updateTopDownCamera()
+        updateCamera()
     }
 
-    private fun updateTopDownCamera() {
-        // Hệ trục Filament/SceneView: +Y là "up".
-        // Camera luôn trên trục +Y, nhìn xuống tâm (centerX, 0, centerZ).
-        sceneView.cameraNode.position = Position(centerX, height, centerZ)
-        sceneView.cameraNode.lookAt(Position(centerX, 0f, centerZ))
+    // Cập nhật camera theo yaw/pitch/radius + center, và CLAMP eye trong 7x7
+    private fun updateCamera() {
+        pitchDeg = pitchDeg.coerceIn(minPitchDegDown, maxPitchDegDown)
+        val yaw   = Math.toRadians(yawDeg.toDouble())
+        val pitch = Math.toRadians(pitchDeg.toDouble())
+
+        val cosP = cos(pitch); val sinP = sin(pitch)
+        val cosY = cos(yaw);   val sinY = sin(yaw)
+
+        // forward (đơn vị) – hướng nhìn từ camera tới center
+        val fwdX = (sinY * cosP).toFloat()
+        val fwdY = (sinP).toFloat()         // âm khi nhìn xuống mặt bàn
+        val fwdZ = (cosY * cosP).toFloat()
+
+        // eye = center - forward * radius
+        var eyeX = centerX - fwdX * radius
+        var eyeY = centerY - fwdY * radius
+        var eyeZ = centerZ - fwdZ * radius
+
+        // ---- CLAMP eye trong hình chữ nhật 7x7 (±3.5) trên trục X/Y ----
+        val clampedEyeX = eyeX.coerceIn(-eyeHalfW, eyeHalfW)
+        val clampedEyeY = eyeY.coerceIn(-eyeHalfH, eyeHalfH)
+        if (clampedEyeX != eyeX || clampedEyeY != eyeY) {
+            val dx = clampedEyeX - eyeX
+            val dy = clampedEyeY - eyeY
+            // Dịch CENTER cùng lượng để eye bị đẩy về biên nhưng vẫn giữ hướng nhìn
+            centerX += dx
+            centerY += dy
+            eyeX = clampedEyeX
+            eyeY = clampedEyeY
+        }
+
+        sceneView.cameraNode.position = Position(eyeX, eyeY, eyeZ)
+        sceneView.cameraNode.lookAt(Position(centerX, centerY, centerZ), upDirection = Direction(y = 1f))
+        sceneView.invalidate()
+    }
+
+    /** Pan trong mặt phẳng vuông góc trục nhìn, scale theo FOV & distance để mượt */
+    private fun panScreenPlane(dxPx: Float, dyPx: Float) {
+        if (sceneView.height == 0) return
+        val worldPerPx = (2f * radius * tan(Math.toRadians((fovDeg / 2f).toDouble())).toFloat()) /
+                sceneView.height.toFloat()
+
+        val yaw   = Math.toRadians(yawDeg.toDouble())
+        val pitch = Math.toRadians(pitchDeg.toDouble())
+        val cosP = cos(pitch); val sinP = sin(pitch)
+        val cosY = cos(yaw);   val sinY = sin(yaw)
+
+        val fwd = floatArrayOf(
+            (sinY * cosP).toFloat(),
+            (sinP).toFloat(),
+            (cosY * cosP).toFloat()
+        )
+        val upW  = floatArrayOf(0f, 1f, 0f)
+        val right = normalize(cross(upW, fwd))
+        val upCam = normalize(cross(fwd, right))
+
+        // Đảo chiều trực quan: kéo phải → đi phải, kéo xuống → đi xuống
+        val kx =  dxPx * worldPerPx
+        val ky = -dyPx * worldPerPx
+
+        centerX += kx * right[0] + ky * upCam[0]
+        centerY -= kx * right[1] + ky * upCam[1]
+        centerZ += kx * right[2] + ky * upCam[2]
+
+        updateCamera()  // sẽ clamp eye sau khi tính
+    }
+
+    /** Picking: trả về node nếu chạm model; nếu không có API -> null (coi như chạm nền) */
+    private fun pickNodeAt(x: Float, y: Float): ModelNode? {
+        return try {
+            val m1 = sceneView::class.java.methods.firstOrNull { it.name == "pickNode" && it.parameterTypes.size == 2 }
+            val n1 = m1?.invoke(sceneView, x, y)
+            if (n1 is ModelNode) return n1
+            val m2 = sceneView::class.java.methods.firstOrNull { it.name == "hitTest" && it.parameterTypes.size == 2 }
+            val hr = m2?.invoke(sceneView, x, y)
+            if (hr != null) {
+                val nodeGetter = hr.javaClass.methods.firstOrNull { it.name == "getNode" || it.name == "node" }
+                nodeGetter?.invoke(hr) as? ModelNode
+            } else null
+        } catch (_: Throwable) { null }
+    }
+
+    // ---- Math helpers ----
+    private fun cross(a: FloatArray, b: FloatArray) = floatArrayOf(
+        a[1]*b[2] - a[2]*b[1],
+        a[2]*b[0] - a[0]*b[2],
+        a[0]*b[1] - a[1]*b[0]
+    )
+    private fun normalize(v: FloatArray): FloatArray {
+        val len = max(1e-6f, sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]))
+        return floatArrayOf(v[0]/len, v[1]/len, v[2]/len)
     }
 
     override fun onDestroyView() {
