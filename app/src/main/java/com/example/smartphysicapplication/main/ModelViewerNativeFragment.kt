@@ -28,15 +28,11 @@ class ModelViewerNativeFragment : Fragment() {
 
     private var yawDeg   = 180f
     private var pitchDeg = -15f
-    private var radius   = 1f      // khoảng cách (zoom)
+    private var radius   = 1f
 
-    private var fovDeg   = 60f      // dùng để scale pan theo zoom
+    private var fovDeg   = 60f
 
-    private var orbitTargetX = 0f      // tâm quỹ đạo (ví dụ: tâm mặt bàn)
-    private var orbitTargetY = 0.8f
-    private var orbitTargetZ = 0f
-
-    // Giới hạn
+    // Giới hạn yaw/pitch
     private val minPitchDegDown = -85f
     private val maxPitchDegDown =  -5f
 
@@ -45,9 +41,13 @@ class ModelViewerNativeFragment : Fragment() {
     private var lastY = 0f
     private lateinit var scaleDetector: ScaleGestureDetector
 
-    // ---- Giới hạn vùng pan cho EYE (0.8x2 -> biên ±3.5m) ----
-    private val eyeHalfW = 0.4f
-    private val eyeHalfH = 1f
+    private var eyeYOffset = 0f
+
+    // ===== Giới hạn khung di chuyển (theo Ox/Oz) =====
+    private val boundsMinX = -0.5f
+    private val boundsMaxX =  0.5f
+    private val boundsMinZ = -1.0f
+    private val boundsMaxZ =  -0.1f
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -60,25 +60,16 @@ class ModelViewerNativeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Đèn trực tiếp
         sceneView.mainLightNode = LightNode(
             sceneView.engine, sceneView.engine.entityManager.create()
         ).apply { intensity = 80_000f }
 
-        // 1) Nạp GLB
         loadGlb("models/Untitled.glb")
-
-        // 2) Scale riêng nếu cần
         setNodeScale(cubeName, 3.0f)
         setNodeScale(jetName,  3.0f)
-
-        // 3) HDR environment
         setupEnvironment()
-
-        // 4) Điều khiển: pinch=zoom, pan 1 ngón khi chạm nền / 2 ngón pan
         enableObliqueControls()
 
-        // Nút bật/ẩn
         view.findViewById<Button>(R.id.btnToggleCube).setOnClickListener {
             toggleChildVisibility(cubeName)
         }
@@ -110,36 +101,12 @@ class ModelViewerNativeFragment : Fragment() {
         child.isVisible = !child.isVisible
     }
 
-    /** Tính eye từ (yaw, pitch, radius) và đặt camera nhìn về orbitTarget */
-    private fun updateOrbitCamera() {
-        val yawRad   = Math.toRadians(yawDeg.toDouble())
-        val pitchRad = Math.toRadians(pitchDeg.toDouble())
-
-        // Hệ trục: +Y up, +Z "trước". Eye = target + offset theo cầu
-        val offsetX = (radius * Math.cos(pitchRad) * Math.sin(yawRad)).toFloat()
-        val offsetY = (radius * Math.sin(pitchRad)).toFloat()              // >= 0 khi pitch>0
-        val offsetZ = (radius * Math.cos(pitchRad) * Math.cos(yawRad)).toFloat()
-
-        val eyeX = orbitTargetX + offsetX
-        val eyeY = orbitTargetY + offsetY
-        val eyeZ = orbitTargetZ + offsetZ
-
-        sceneView.cameraNode.position = Position(eyeX, eyeY, eyeZ)
-        sceneView.cameraNode.lookAt(
-            Position(orbitTargetX, orbitTargetY, orbitTargetZ),
-            upDirection = io.github.sceneview.math.Direction(y = 1f)
-        )
-        sceneView.invalidate()
-    }
-
-    // -------------------- Controls --------------------
     private fun enableObliqueControls(
         minRadius: Float = 0.3f,
         maxRadius: Float = 2f
     ) {
         sceneView.cameraManipulator = null
 
-        // Pinch = zoom (đổi radius)
         scaleDetector = ScaleGestureDetector(
             requireContext(),
             object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -163,15 +130,12 @@ class ModelViewerNativeFragment : Fragment() {
                     lastY = (ev.getY(0) + ev.getY(1)) / 2f
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    // 1 ngón, không zoom, KHÔNG chạm model => pan
                     if (!scaleDetector.isInProgress && ev.pointerCount == 1 && !touchingModel) {
                         val dx = ev.x - lastX
                         val dy = ev.y - lastY
                         lastX = ev.x; lastY = ev.y
                         panScreenPlane(dx, dy)
-                    }
-                    // 2 ngón => pan luôn
-                    else if (!scaleDetector.isInProgress && ev.pointerCount == 2) {
+                    } else if (!scaleDetector.isInProgress && ev.pointerCount == 2) {
                         val cx = (ev.getX(0) + ev.getX(1)) / 2f
                         val cy = (ev.getY(0) + ev.getY(1)) / 2f
                         val dx = cx - lastX
@@ -190,75 +154,54 @@ class ModelViewerNativeFragment : Fragment() {
         updateCamera()
     }
 
-    // Cập nhật camera theo yaw/pitch/radius + center, và CLAMP eye trong 7x7
+    private fun panScreenPlane(dxPx: Float, dyPx: Float) {
+        if (sceneView.height == 0) return
+
+        val worldPerPx =
+            (2f * radius * tan(Math.toRadians((fovDeg / 2f).toDouble())).toFloat()) /
+                    sceneView.height.toFloat()
+
+        val dX =  dxPx * worldPerPx
+        val dZ = -dyPx * worldPerPx
+
+        centerX -= dX
+        centerZ += dZ
+
+        // Giới hạn trong khung
+        clampCenterXZ()
+
+        updateCamera()
+    }
+
+    private fun clampCenterXZ() {
+        centerX = centerX.coerceIn(boundsMinX, boundsMaxX)
+        centerZ = centerZ.coerceIn(boundsMinZ, boundsMaxZ)
+    }
+
     private fun updateCamera() {
+        clampCenterXZ()
+
         pitchDeg = pitchDeg.coerceIn(minPitchDegDown, maxPitchDegDown)
+
         val yaw   = Math.toRadians(yawDeg.toDouble())
         val pitch = Math.toRadians(pitchDeg.toDouble())
 
         val cosP = cos(pitch); val sinP = sin(pitch)
         val cosY = cos(yaw);   val sinY = sin(yaw)
 
-        // forward (đơn vị) – hướng nhìn từ camera tới center
         val fwdX = (sinY * cosP).toFloat()
-        val fwdY = (sinP).toFloat()         // âm khi nhìn xuống mặt bàn
+        val fwdY = (sinP).toFloat()
         val fwdZ = (cosY * cosP).toFloat()
 
-        // eye = center - forward * radius
-        var eyeX = centerX - fwdX * radius
-        var eyeY = centerY - fwdY * radius
-        var eyeZ = centerZ - fwdZ * radius
-
-        // ---- CLAMP eye trong hình chữ nhật 7x7 (±3.5) trên trục X/Y ----
-        val clampedEyeX = eyeX.coerceIn(-eyeHalfW, eyeHalfW)
-        val clampedEyeY = eyeY.coerceIn(-eyeHalfH, eyeHalfH)
-        if (clampedEyeX != eyeX || clampedEyeY != eyeY) {
-            val dx = clampedEyeX - eyeX
-            val dy = clampedEyeY - eyeY
-            // Dịch CENTER cùng lượng để eye bị đẩy về biên nhưng vẫn giữ hướng nhìn
-            centerX += dx
-            centerY += dy
-            eyeX = clampedEyeX
-            eyeY = clampedEyeY
-        }
+        val eyeX = centerX - fwdX * radius
+        val eyeY = eyeYOffset - fwdY * radius
+        val eyeZ = centerZ - fwdZ * radius
 
         sceneView.cameraNode.position = Position(eyeX, eyeY, eyeZ)
         sceneView.cameraNode.lookAt(Position(centerX, centerY, centerZ), upDirection = Direction(y = 1f))
         sceneView.invalidate()
     }
 
-    /** Pan trong mặt phẳng vuông góc trục nhìn, scale theo FOV & distance để mượt */
-    private fun panScreenPlane(dxPx: Float, dyPx: Float) {
-        if (sceneView.height == 0) return
-        val worldPerPx = (2f * radius * tan(Math.toRadians((fovDeg / 2f).toDouble())).toFloat()) /
-                sceneView.height.toFloat()
-
-        val yaw   = Math.toRadians(yawDeg.toDouble())
-        val pitch = Math.toRadians(pitchDeg.toDouble())
-        val cosP = cos(pitch); val sinP = sin(pitch)
-        val cosY = cos(yaw);   val sinY = sin(yaw)
-
-        val fwd = floatArrayOf(
-            (sinY * cosP).toFloat(),
-            (sinP).toFloat(),
-            (cosY * cosP).toFloat()
-        )
-        val upW  = floatArrayOf(0f, 1f, 0f)
-        val right = normalize(cross(upW, fwd))
-        val upCam = normalize(cross(fwd, right))
-
-        // Đảo chiều trực quan: kéo phải → đi phải, kéo xuống → đi xuống
-        val kx =  dxPx * worldPerPx
-        val ky = -dyPx * worldPerPx
-
-        centerX += kx * right[0] + ky * upCam[0]
-        centerY -= kx * right[1] + ky * upCam[1]
-        centerZ += kx * right[2] + ky * upCam[2]
-
-        updateCamera()  // sẽ clamp eye sau khi tính
-    }
-
-    /** Picking: trả về node nếu chạm model; nếu không có API -> null (coi như chạm nền) */
     private fun pickNodeAt(x: Float, y: Float): ModelNode? {
         return try {
             val m1 = sceneView::class.java.methods.firstOrNull { it.name == "pickNode" && it.parameterTypes.size == 2 }
@@ -273,12 +216,12 @@ class ModelViewerNativeFragment : Fragment() {
         } catch (_: Throwable) { null }
     }
 
-    // ---- Math helpers ----
     private fun cross(a: FloatArray, b: FloatArray) = floatArrayOf(
         a[1]*b[2] - a[2]*b[1],
         a[2]*b[0] - a[0]*b[2],
         a[0]*b[1] - a[1]*b[0]
     )
+
     private fun normalize(v: FloatArray): FloatArray {
         val len = max(1e-6f, sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]))
         return floatArrayOf(v[0]/len, v[1]/len, v[2]/len)
