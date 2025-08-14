@@ -1,12 +1,12 @@
 package com.example.smartphysicapplication.main
 
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.Button
-import androidx.fragment.app.Fragment
+import androidx.appcompat.app.AppCompatActivity
 import com.example.smartphysicapplication.R
 import io.github.sceneview.SceneView
-import io.github.sceneview.environment.*
 import io.github.sceneview.math.Direction
 import io.github.sceneview.math.Position
 import io.github.sceneview.math.Scale
@@ -14,7 +14,9 @@ import io.github.sceneview.node.LightNode
 import io.github.sceneview.node.ModelNode
 import kotlin.math.*
 
-class ModelViewerNativeFragment : Fragment() {
+private const val LOG_TAG = "ModelPick"
+
+class ModelViewerNativeActivity : AppCompatActivity() {
 
     private lateinit var sceneView: SceneView
     private var rootModel: ModelNode? = null
@@ -47,33 +49,32 @@ class ModelViewerNativeFragment : Fragment() {
     private val boundsMinX = -0.5f
     private val boundsMaxX =  0.5f
     private val boundsMinZ = -1.0f
-    private val boundsMaxZ =  -0.1f
+    private val boundsMaxZ =  0.2f
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        val root = inflater.inflate(R.layout.fragment_model_viewer, container, false)
-        sceneView = root.findViewById(R.id.sceneView)
-        return root
-    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_model_viewer)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+        sceneView = findViewById(R.id.sceneView)
+        findViewById<Button>(R.id.btnBack).setOnClickListener {
+            finish()
+        }
 
         sceneView.mainLightNode = LightNode(
             sceneView.engine, sceneView.engine.entityManager.create()
         ).apply { intensity = 80_000f }
 
         loadGlb("models/Untitled.glb")
-        setNodeScale(cubeName, 3.0f)
-        setNodeScale(jetName,  3.0f)
+        setNodeScale(cubeName, 1.0f)
+        setNodeScale(jetName,  1.0f)
         setupEnvironment()
+        enablePicking()
         enableObliqueControls()
 
-        view.findViewById<Button>(R.id.btnToggleCube).setOnClickListener {
+        findViewById<Button>(R.id.btnToggleCube).setOnClickListener {
             toggleChildVisibility(cubeName)
         }
-        view.findViewById<Button>(R.id.btnToggleJet).setOnClickListener {
+        findViewById<Button>(R.id.btnToggleJet).setOnClickListener {
             toggleChildVisibility(jetName)
         }
     }
@@ -108,7 +109,7 @@ class ModelViewerNativeFragment : Fragment() {
         sceneView.cameraManipulator = null
 
         scaleDetector = ScaleGestureDetector(
-            requireContext(),
+            this,
             object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
                 override fun onScale(d: ScaleGestureDetector): Boolean {
                     radius = (radius / d.scaleFactor).coerceIn(minRadius, maxRadius)
@@ -123,19 +124,28 @@ class ModelViewerNativeFragment : Fragment() {
             when (ev.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     lastX = ev.x; lastY = ev.y
-                    touchingModel = pickNodeAt(ev.x, ev.y) != null
+                    val picked = pickDeepNodeAt(ev.x, ev.y)
+                    touchingModel = picked != null
+                    Log.d(LOG_TAG, if (picked != null) "Touched model: ${picked.name}" else "Touched background")
                 }
+
                 MotionEvent.ACTION_POINTER_DOWN -> if (ev.pointerCount == 2) {
                     lastX = (ev.getX(0) + ev.getX(1)) / 2f
                     lastY = (ev.getY(0) + ev.getY(1)) / 2f
                 }
+
                 MotionEvent.ACTION_MOVE -> {
-                    if (!scaleDetector.isInProgress && ev.pointerCount == 1 && !touchingModel) {
+                    // Nếu ngón bắt đầu trên model -> KHÔNG pan (1 hoặc 2 ngón đều bỏ qua)
+                    if (touchingModel) return@setOnTouchListener true
+
+                    val isZooming = scaleDetector.isInProgress
+
+                    if (!isZooming && ev.pointerCount == 1) {
                         val dx = ev.x - lastX
                         val dy = ev.y - lastY
                         lastX = ev.x; lastY = ev.y
                         panScreenPlane(dx, dy)
-                    } else if (!scaleDetector.isInProgress && ev.pointerCount == 2) {
+                    } else if (!isZooming && ev.pointerCount == 2) {
                         val cx = (ev.getX(0) + ev.getX(1)) / 2f
                         val cy = (ev.getY(0) + ev.getY(1)) / 2f
                         val dx = cx - lastX
@@ -144,12 +154,14 @@ class ModelViewerNativeFragment : Fragment() {
                         panScreenPlane(dx, dy)
                     }
                 }
+
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     touchingModel = false
                 }
             }
             true
         }
+
 
         updateCamera()
     }
@@ -203,32 +215,93 @@ class ModelViewerNativeFragment : Fragment() {
     }
 
     private fun pickNodeAt(x: Float, y: Float): ModelNode? {
+        // 1) Thử API trực tiếp nếu tồn tại
+        try {
+            val mPick = sceneView::class.java.methods
+                .firstOrNull { it.name == "pickNode" && it.parameterTypes.size == 2 }
+            val n = mPick?.invoke(sceneView, x, y)
+            if (n is ModelNode) {
+                Log.d("ModelPick", "Has node")
+                return n
+            }
+        } catch (_: Throwable) {}
+
+        // 2) Fallback: hitTest -> lấy node
         return try {
-            val m1 = sceneView::class.java.methods.firstOrNull { it.name == "pickNode" && it.parameterTypes.size == 2 }
-            val n1 = m1?.invoke(sceneView, x, y)
-            if (n1 is ModelNode) return n1
-            val m2 = sceneView::class.java.methods.firstOrNull { it.name == "hitTest" && it.parameterTypes.size == 2 }
-            val hr = m2?.invoke(sceneView, x, y)
-            if (hr != null) {
-                val nodeGetter = hr.javaClass.methods.firstOrNull { it.name == "getNode" || it.name == "node" }
-                nodeGetter?.invoke(hr) as? ModelNode
-            } else null
-        } catch (_: Throwable) { null }
+            val mHit = sceneView::class.java.methods
+                .firstOrNull { it.name == "hitTest" && it.parameterTypes.size == 2 }
+            val hit = mHit?.invoke(sceneView, x, y) ?: return null
+            val nodeGetter = hit.javaClass.methods.firstOrNull { it.name == "getNode" || it.name == "node" }
+            nodeGetter?.invoke(hit) as? ModelNode
+        } catch (_: Throwable) {
+            null
+        }
     }
 
-    private fun cross(a: FloatArray, b: FloatArray) = floatArrayOf(
-        a[1]*b[2] - a[2]*b[1],
-        a[2]*b[0] - a[0]*b[2],
-        a[0]*b[1] - a[1]*b[0]
-    )
-
-    private fun normalize(v: FloatArray): FloatArray {
-        val len = max(1e-6f, sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]))
-        return floatArrayOf(v[0]/len, v[1]/len, v[2]/len)
+    private fun findNodeByEntity(node: ModelNode?, entity: Int): ModelNode? {
+        if (node == null) return null
+        if (node.entity == entity) return node
+        node.childNodes.forEach { child ->
+            val found = findNodeByEntity(child as? ModelNode, entity)
+            if (found != null) return found
+        }
+        return null
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        sceneView.destroy()
+    private fun pickDeepNodeAt(x: Float, y: Float): ModelNode? {
+        return try {
+            val pickNodeM = sceneView::class.java.methods
+                .firstOrNull { it.name == "pickNode" && it.parameterTypes.size == 2 }
+            val picked = pickNodeM?.invoke(sceneView, x, y)
+            if (picked is ModelNode) return picked
+
+            val hitTestM = sceneView::class.java.methods
+                .firstOrNull { it.name == "hitTest" && it.parameterTypes.size == 2 }
+            val hr = hitTestM?.invoke(sceneView, x, y) ?: return null
+
+            val entityGetter = hr.javaClass.methods.firstOrNull { m ->
+                val n = m.name.lowercase()
+                m.parameterTypes.isEmpty() && (n.contains("entity") || n.contains("filament"))
+            }
+            val entity = (entityGetter?.invoke(hr) as? Int) ?: 0
+
+            if (entity != 0) {
+                findNodeByEntity(rootModel, entity) ?: rootModel
+            } else {
+                val nodeGetter = hr.javaClass.methods.firstOrNull { m ->
+                    val n = m.name.lowercase()
+                    m.parameterTypes.isEmpty() && (n == "getnode" || n == "node")
+                }
+                nodeGetter?.invoke(hr) as? ModelNode ?: rootModel
+            }
+        } catch (_: Throwable) {
+            null
+        }
     }
+
+
+    private fun enablePicking() {
+        try {
+            // API trực tiếp (nếu phiên bản SceneView của bạn có)
+            val field = sceneView::class.java.methods.firstOrNull { it.name == "setPickingEnabled" && it.parameterTypes.size == 1 }
+            if (field != null) {
+                field.invoke(sceneView, true)
+                Log.d(LOG_TAG, "Picking enabled via SceneView.setPickingEnabled(true)")
+                return
+            }
+        } catch (_: Throwable) { }
+
+        try {
+            // Fallback: bật trên Filament View bên dưới
+            val getView = sceneView::class.java.methods.firstOrNull { it.name == "getView" && it.parameterTypes.isEmpty() }
+            val filamentView = getView?.invoke(sceneView)
+            val setPick = filamentView?.javaClass?.methods
+                ?.firstOrNull { it.name == "setPickingEnabled" && it.parameterTypes.size == 1 }
+            setPick?.invoke(filamentView, true)
+            Log.d(LOG_TAG, "Picking enabled via Filament View.setPickingEnabled(true)")
+        } catch (e: Throwable) {
+            Log.w(LOG_TAG, "Cannot enable picking (no API found)", e)
+        }
+    }
+
 }

@@ -30,6 +30,12 @@
         <activity
             android:name=".main.GamificationActivity">
         </activity>
+        <activity
+            android:name=".main.ModelViewerNativeActivity">
+        </activity>
+        <activity
+            android:name=".main.LabDragActivity">
+        </activity>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET"/>
