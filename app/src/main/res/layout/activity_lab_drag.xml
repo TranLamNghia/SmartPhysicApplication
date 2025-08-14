@@ -1,3 +1,4 @@
+<!-- res/layout/activity_lab_drag.xml -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent">
 
@@ -6,12 +7,40 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Chỉ 1 nút, không còn overlay che phủ -->
-    <Button
-        android:id="@+id/btnBack"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Back"
-        android:layout_gravity="top|end"
-        android:layout_margin="12dp" />
+    <!-- Thanh nút chọn model + Back -->
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:padding="12dp"
+        android:layout_gravity="top"
+        android:background="#33000000">
+
+        <Button
+            android:id="@+id/btnAmmeter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ammeter" />
+
+        <Button
+            android:id="@+id/btnJet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Jet"
+            android:layout_marginStart="8dp" />
+
+        <Button
+            android:id="@+id/btnBG"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="BG"
+            android:layout_marginStart="8dp" />
+
+        <Button
+            android:id="@+id/btnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Back"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
 </FrameLayout>
