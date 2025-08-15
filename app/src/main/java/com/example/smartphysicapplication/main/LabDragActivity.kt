@@ -149,34 +149,61 @@ class LabDragActivity : AppCompatActivity() {
         var lastX = 0f
         var lastY = 0f
 
+        // Thêm detector cho pinch zoom
+        val scaleDetector = ScaleGestureDetector(this,
+            object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                    // Chỉ cho zoom khi đang ở BG
+                    if (dragTarget == DragTarget.BACKGROUND) {
+                        // thay đổi khoảng cách camera (radius), không đổi fov
+                        val newRadius = (radius / detector.scaleFactor).coerceIn(0.35f, 3.0f)
+                        // (Tuỳ chọn) zoom hướng về tâm pinch để đỡ “trôi”
+                        val fpX = detector.focusX
+                        val fpY = detector.focusY
+                        screenRayForDrag(fpX, fpY)?.let { (ro, rd) ->
+                            intersectRayWithPlane(ro, rd, Position(0f, tableTopY, 0f), Direction(y = 1f))
+                                ?.let { hit ->
+                                    // dịch nhẹ center về phía điểm hit khi thay đổi radius
+                                    val k = 0.15f
+                                    centerX = centerX * (1 - k) + hit.x * k
+                                    centerZ = centerZ * (1 - k) + hit.z * k
+                                }
+                        }
+                        radius = newRadius
+                        updateCamera()
+                    }
+                    return true
+                }
+            })
+
         sceneView.setOnTouchListener { _, ev ->
+            // Luôn chuyển sự kiện qua detector trước
+            scaleDetector.onTouchEvent(ev)
+
             when (ev.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
-                    lastX = ev.x
-                    lastY = ev.y
+                    lastX = ev.x; lastY = ev.y
 
                     when (dragTarget) {
-                        DragTarget.BACKGROUND -> {
-                            // chỉ pan, không cần ray-plane
-                            dragging = true
-                        }
+                        DragTarget.BACKGROUND -> dragging = true
                         DragTarget.AMMETER, DragTarget.JET -> {
                             val node = activeNode ?: return@setOnTouchListener true
                             val (ro, rd) = screenRayForDrag(ev.x, ev.y) ?: return@setOnTouchListener true
-                            val hit = intersectRayWithPlane(
-                                ro, rd,
-                                Position(0f, tableTopY, 0f),
-                                Direction(y = 1f)
-                            ) ?: return@setOnTouchListener true
-
-                            // offset để không “nhảy” khi bắt đầu kéo
-                            dragOffset = Position(
-                                node.position.x - hit.x, 0f,
-                                node.position.z - hit.z
-                            )
+                            val hit = intersectRayWithPlane(ro, rd, Position(0f, tableTopY, 0f), Direction(y = 1f))
+                                ?: return@setOnTouchListener true
+                            dragOffset = Position(node.position.x - hit.x, 0f, node.position.z - hit.z)
                             dragging = true
                         }
                     }
+                    true
+                }
+
+                // Khi có ngón thứ 2: hủy drag model để tránh xung đột, và chỉ zoom BG
+                MotionEvent.ACTION_POINTER_DOWN -> {
+                    if (dragTarget != DragTarget.BACKGROUND) dragging = false
+                    // cập nhật tâm 2 ngón để pan BG mượt nếu muốn
+                    lastX = (0 until ev.pointerCount).sumOf { ev.getX(it).toDouble() }.toFloat() / ev.pointerCount
+                    lastY = (0 until ev.pointerCount).sumOf { ev.getY(it).toDouble() }.toFloat() / ev.pointerCount
                     true
                 }
 
@@ -185,27 +212,27 @@ class LabDragActivity : AppCompatActivity() {
 
                     when (dragTarget) {
                         DragTarget.BACKGROUND -> {
-                            // Pan background theo biên độ ngón tay
-                            val dx = ev.x - lastX
-                            val dy = ev.y - lastY
-                            lastX = ev.x
-                            lastY = ev.y
-                            panScreenPlane(dx, dy)   // dùng helper bạn đã có (đã đúng chiều)
+                            // Nếu đang pinch, detector.isInProgress = true → chỉ zoom, không pan
+                            if (!scaleDetector.isInProgress) {
+                                val dx = ev.x - lastX
+                                val dy = ev.y - lastY
+                                lastX = ev.x; lastY = ev.y
+                                panScreenPlane(dx, dy)     // chiều pan giữ như bạn đang dùng
+                            }
                         }
                         DragTarget.AMMETER, DragTarget.JET -> {
+                            // Nếu có 2 ngón trong lúc kéo model → bỏ qua move (tránh “giật”)
+                            if (ev.pointerCount > 1) return@setOnTouchListener true
+
                             val node = activeNode ?: return@setOnTouchListener true
                             val (ro, rd) = screenRayForDrag(ev.x, ev.y) ?: return@setOnTouchListener true
-                            val hit = intersectRayWithPlane(
-                                ro, rd,
-                                Position(0f, tableTopY, 0f),
-                                Direction(y = 1f)
-                            ) ?: return@setOnTouchListener true
+                            val hit = intersectRayWithPlane(ro, rd, Position(0f, tableTopY, 0f), Direction(y = 1f))
+                                ?: return@setOnTouchListener true
 
                             var tx = hit.x + dragOffset.x
                             var tz = hit.z + dragOffset.z
                             tx = tx.coerceIn(minX, maxX)
                             tz = tz.coerceIn(minZ, maxZ)
-
                             node.position = Position(tx, tableTopY + 0.0005f, tz)
                         }
                     }
@@ -221,7 +248,6 @@ class LabDragActivity : AppCompatActivity() {
             }
         }
     }
-
 
     private fun screenRayForDrag(x: Float, y: Float): Pair<Position, Direction>? {
         val w = sceneView.width.takeIf { it > 0 } ?: return null
