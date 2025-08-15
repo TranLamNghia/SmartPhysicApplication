@@ -1,5 +1,6 @@
 package com.example.smartphysicapplication.main
 
+import FormulaFragment
 import android.net.wifi.p2p.WifiP2pManager.ActionListener
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -20,6 +21,7 @@ import com.example.smartphysicapplication.model.Topic
 class PhysicsSubjectFragment : Fragment() {
 
     private lateinit var btnBack: ImageView
+    private lateinit var btnFormula : Button
     private lateinit var btnMindMap : Button
     private lateinit var subjectTitleTextView: TextView
     private lateinit var chaptersRecyclerView: RecyclerView
@@ -48,6 +50,7 @@ class PhysicsSubjectFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         btnBack = view.findViewById(R.id.btn_back)
         btnMindMap = view.findViewById(R.id.btn_mindmap)
+        btnFormula = view.findViewById(R.id.btn_formula)
         subjectTitleTextView = view.findViewById(R.id.subject_title)
         chaptersRecyclerView = view.findViewById(R.id.chapters_recycler_view)
 
@@ -61,6 +64,10 @@ class PhysicsSubjectFragment : Fragment() {
 
         btnMindMap.setOnClickListener {
             (activity as? MainActivity)?.loadFragment(MindMapFragment())
+        }
+
+        btnFormula.setOnClickListener {
+            (activity as? MainActivity)?.loadFragment(FormulaFragment())
         }
 
         setupChaptersRecyclerView()

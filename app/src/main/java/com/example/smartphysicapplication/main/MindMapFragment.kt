@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ScrollView
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.example.smartphysicapplication.R
 
@@ -19,13 +18,16 @@ class MindMapFragment : Fragment() {
     private lateinit var scrollView: ScrollView
 
     // lesson items
-    private lateinit var item1: View; private lateinit var item2: View
-    private lateinit var item3: View; private lateinit var item4: View
+    private lateinit var item1: View;
+    private lateinit var item2: View
+    private lateinit var item3: View;
+    private lateinit var item4: View
     private lateinit var item5: View
 
-    // ảnh dưới mỗi lesson
-    private lateinit var card1: View; private lateinit var card2: View
-    private lateinit var card3: View; private lateinit var card4: View
+    private lateinit var card1: View;
+    private lateinit var card2: View
+    private lateinit var card3: View;
+    private lateinit var card4: View
     private lateinit var card5: View
 
     private lateinit var allPairs: List<Pair<View, View>>
@@ -61,7 +63,6 @@ class MindMapFragment : Fragment() {
         )
         allCards = allPairs.map { it.second }
 
-        // gán click cho từng lesson
         allPairs.forEach { (item, card) ->
             item.setOnClickListener { toggleOnly(card) }
         }
@@ -76,10 +77,8 @@ class MindMapFragment : Fragment() {
         val parent = target.parent as ViewGroup
         TransitionManager.beginDelayedTransition(parent, AutoTransition())
 
-        // ẩn tất cả
         allCards.forEach { it.visibility = View.GONE }
 
-        // mở card được nhấn
         if (willOpen) {
             target.visibility = View.VISIBLE
             scrollToView(target)
