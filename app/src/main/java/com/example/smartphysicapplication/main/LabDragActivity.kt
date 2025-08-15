@@ -24,7 +24,9 @@ private enum class DragTarget { AMMETER, JET, BACKGROUND }
 private var dragTarget: DragTarget = DragTarget.AMMETER
 
 class LabDragActivity : AppCompatActivity() {
-
+    private val interactables = mutableListOf<ModelNode>()
+    private val displayNames = mutableMapOf<ModelNode, String>()
+    private val localAabbCache = mutableMapOf<ModelNode, Pair<Position, Position>>()
     private lateinit var sceneView: SceneView
 
     private var tableTopY = 0f
@@ -64,6 +66,86 @@ class LabDragActivity : AppCompatActivity() {
     private val boundsMinZ = -1.0f
     private val boundsMaxZ =  0.2f
 
+    private fun getLocalAabbSafe(node: ModelNode): Pair<Position, Position>? {
+        fun anyToPos(v: Any): Position? {
+            fun g(n: String) = v.javaClass.methods.firstOrNull {
+                it.name.equals(n, true) && it.parameterTypes.isEmpty()
+            }
+            val getX = g("getX") ?: g("x") ?: return null
+            val getY = g("getY") ?: g("y") ?: return null
+            val getZ = g("getZ") ?: g("z") ?: return null
+            return Position(
+                (getX.invoke(v) as Number).toFloat(),
+                (getY.invoke(v) as Number).toFloat(),
+                (getZ.invoke(v) as Number).toFloat()
+            )
+        }
+
+        fun findBbox(obj: Any?): Any? {
+            if (obj == null) return null
+            val m = obj.javaClass.methods.firstOrNull {
+                val n = it.name.lowercase()
+                it.parameterTypes.isEmpty() &&
+                        (n == "getboundingbox" || n == "boundingbox" || n == "getaabb" || n == "aabb")
+            }
+            return m?.invoke(obj)
+        }
+
+        fun findAsset(obj: Any?): Any? {
+            if (obj == null) return null
+            val m = obj.javaClass.methods.firstOrNull {
+                val n = it.name.lowercase()
+                it.parameterTypes.isEmpty() &&
+                        (n == "getasset" || n == "asset" || n == "getfilamentasset" || n == "filamentasset")
+            }
+            return m?.invoke(obj)
+        }
+
+        fun extractMinMax(bbox: Any): Pair<Position, Position>? {
+            fun find(name1: String, name2: String, name3: String) =
+                bbox.javaClass.methods.firstOrNull {
+                    it.parameterTypes.isEmpty() &&
+                            (it.name.equals(name1, true) || it.name.equals(name2, true) || it.name.equals(name3, true))
+                }
+            val minM = find("getMin", "min", "getMinPoint") ?: return null
+            val maxM = find("getMax", "max", "getMaxPoint") ?: return null
+            val vMin = minM.invoke(bbox) ?: return null
+            val vMax = maxM.invoke(bbox) ?: return null
+            val pMin = anyToPos(vMin) ?: return null
+            val pMax = anyToPos(vMax) ?: return null
+            return pMin to pMax
+        }
+
+        val inst = node.modelInstance
+        // 1) Thử trực tiếp trên instance
+        var bbox = findBbox(inst)
+        // 2) Nếu không có, thử qua asset
+        if (bbox == null) bbox = findBbox(findAsset(inst))
+        // 3) Nếu vẫn không có → đành chịu (null)
+        val local = bbox?.let { extractMinMax(it) } ?: return null
+        return local
+    }
+
+
+    private fun registerInteractable(node: ModelNode, name: String = node.name ?: "Unnamed") {
+        interactables += node
+        displayNames[node] = name
+
+        val aabb = getLocalAabbSafe(node)
+        if (aabb != null) {
+            localAabbCache[node] = aabb
+            Log.d(TAG, "Registered $name with localAabb=$aabb")
+        } else {
+            Log.w(TAG, "Registered $name WITHOUT local AABB (will use circular footprint fallback)")
+        }
+    }
+
+    private fun unregisterInteractable(node: ModelNode) {
+        interactables.remove(node)
+        displayNames.remove(node)
+        localAabbCache.remove(node)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_lab_drag)   // dùng layout 1 SceneView + nút Back mà bạn đã có
@@ -79,8 +161,8 @@ class LabDragActivity : AppCompatActivity() {
         setupEnvironment()
 
 //         --- (1) Nạp bàn nếu có (bỏ qua nếu bạn chưa tách bàn thành GLB riêng) ---
-         tableNode = ModelNode(modelInstance = sceneView.modelLoader.createModelInstance("models/Table.glb"), scaleToUnits = 3f)
-         sceneView.addChildNode(tableNode!!)
+        tableNode = ModelNode(modelInstance = sceneView.modelLoader.createModelInstance("models/Table.glb"), scaleToUnits = 3f)
+        sceneView.addChildNode(tableNode!!)
 
         tableTopY = 0f                       // nếu chưa có bàn riêng, để 0f
         minX = -1.0f; maxX = 1.0f            // biên kéo tạm thời
@@ -103,6 +185,11 @@ class LabDragActivity : AppCompatActivity() {
             position = Position(+0.2f, tableTopY, 0.0f)
         }
         sceneView.addChildNode(jetNode!!)
+
+        // Đăng kí NODE
+        registerInteractable(ammeterNode!!, "Ammeter")
+        registerInteractable(jetNode!!, "Jet")
+        Log.d(TAG, "Interactables = ${interactables.map { displayNames[it] }}")
 
         findViewById<Button>(R.id.btnAmmeter).setOnClickListener {
             activeNode = ammeterNode
@@ -127,12 +214,6 @@ class LabDragActivity : AppCompatActivity() {
         // Camera nhìn xuống bàn
         updateCamera()
 
-        // Drag trên mặt phẳng bàn
-//        enableObliqueControls()
-
-        // Move model
-//        setupDragOnTableAccurate()
-
         setupActiveNodeDrag()
     }
 
@@ -145,109 +226,114 @@ class LabDragActivity : AppCompatActivity() {
     @SuppressLint("ClickableViewAccessibility")
     private fun setupActiveNodeDrag() {
         var dragging = false
-        var dragOffset = Position(0f, 0f, 0f)
+
         var lastX = 0f
         var lastY = 0f
+        var suppressNextMove = false
 
-        // Thêm detector cho pinch zoom
-        val scaleDetector = ScaleGestureDetector(this,
+        val scaleDetector = ScaleGestureDetector(
+            this,
             object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
-                override fun onScale(detector: ScaleGestureDetector): Boolean {
-                    // Chỉ cho zoom khi đang ở BG
+                override fun onScale(d: ScaleGestureDetector): Boolean {
                     if (dragTarget == DragTarget.BACKGROUND) {
-                        // thay đổi khoảng cách camera (radius), không đổi fov
-                        val newRadius = (radius / detector.scaleFactor).coerceIn(0.35f, 3.0f)
-                        // (Tuỳ chọn) zoom hướng về tâm pinch để đỡ “trôi”
-                        val fpX = detector.focusX
-                        val fpY = detector.focusY
-                        screenRayForDrag(fpX, fpY)?.let { (ro, rd) ->
-                            intersectRayWithPlane(ro, rd, Position(0f, tableTopY, 0f), Direction(y = 1f))
-                                ?.let { hit ->
-                                    // dịch nhẹ center về phía điểm hit khi thay đổi radius
-                                    val k = 0.15f
-                                    centerX = centerX * (1 - k) + hit.x * k
-                                    centerZ = centerZ * (1 - k) + hit.z * k
-                                }
-                        }
-                        radius = newRadius
+                        radius = (radius / d.scaleFactor).coerceIn(0.35f, 3.0f)
                         updateCamera()
                     }
                     return true
                 }
-            })
+            }
+        )
 
         sceneView.setOnTouchListener { _, ev ->
-            // Luôn chuyển sự kiện qua detector trước
+            // luôn chuyển qua detector trước
             scaleDetector.onTouchEvent(ev)
 
             when (ev.actionMasked) {
+
                 MotionEvent.ACTION_DOWN -> {
                     lastX = ev.x; lastY = ev.y
+                    suppressNextMove = false
 
-                    when (dragTarget) {
-                        DragTarget.BACKGROUND -> dragging = true
-                        DragTarget.AMMETER, DragTarget.JET -> {
-                            val node = activeNode ?: return@setOnTouchListener true
-                            val (ro, rd) = screenRayForDrag(ev.x, ev.y) ?: return@setOnTouchListener true
-                            val hit = intersectRayWithPlane(ro, rd, Position(0f, tableTopY, 0f), Direction(y = 1f))
-                                ?: return@setOnTouchListener true
-                            dragOffset = Position(node.position.x - hit.x, 0f, node.position.z - hit.z)
-                            dragging = true
-                        }
+                    if (dragTarget == DragTarget.BACKGROUND) {
+                        dragging = true
+                    } else {
+                        // Chọn model gần nhất tại điểm chạm
+                        val picked = pickInteractable(ev.x, ev.y)
+                        Log.d(TAG, "Picked = ${picked?.let { displayNames[it] } ?: "<none>"}")
+                        activeNode = picked
+                        dragging = (picked != null)
                     }
-                    true
-                }
-
-                // Khi có ngón thứ 2: hủy drag model để tránh xung đột, và chỉ zoom BG
-                MotionEvent.ACTION_POINTER_DOWN -> {
-                    if (dragTarget != DragTarget.BACKGROUND) dragging = false
-                    // cập nhật tâm 2 ngón để pan BG mượt nếu muốn
-                    lastX = (0 until ev.pointerCount).sumOf { ev.getX(it).toDouble() }.toFloat() / ev.pointerCount
-                    lastY = (0 until ev.pointerCount).sumOf { ev.getY(it).toDouble() }.toFloat() / ev.pointerCount
-                    true
                 }
 
                 MotionEvent.ACTION_MOVE -> {
-                    if (!dragging) return@setOnTouchListener true
+                    // Bỏ qua frame MOVE đầu tiên sau pinch để tránh giật
+                    if (suppressNextMove) {
+                        lastX = ev.x; lastY = ev.y
+                        suppressNextMove = false
+                    } else if (dragging) {
 
-                    when (dragTarget) {
-                        DragTarget.BACKGROUND -> {
-                            // Nếu đang pinch, detector.isInProgress = true → chỉ zoom, không pan
+                        if (dragTarget == DragTarget.BACKGROUND) {
+                            // Pan nền khi KHÔNG pinch
                             if (!scaleDetector.isInProgress) {
                                 val dx = ev.x - lastX
                                 val dy = ev.y - lastY
                                 lastX = ev.x; lastY = ev.y
-                                panScreenPlane(dx, dy)     // chiều pan giữ như bạn đang dùng
+                                panScreenPlane(dx, dy)
+                            }
+                        } else {
+                            // Kéo model theo screen-space delta (đi đúng theo tay)
+                            val node = activeNode
+                            if (node != null && ev.pointerCount == 1) {
+                                val dxPx = ev.x - lastX
+                                val dyPx = ev.y - lastY
+                                lastX = ev.x; lastY = ev.y
+
+                                val worldPerPx =
+                                    (2f * radius * tan(Math.toRadians((fovDeg / 2f).toDouble())).toFloat()) /
+                                            sceneView.height.toFloat()
+
+                                val dX = dxPx * worldPerPx   // sang phải = +X
+                                val dZ = dyPx * worldPerPx   // kéo xuống = +Z (khớp pan nền)
+
+                                val newX = (node.position.x + dX).coerceIn(minX, maxX)
+                                val newZ = (node.position.z + dZ).coerceIn(minZ, maxZ)
+                                node.position = Position(newX, tableTopY + 0.0005f, newZ)
                             }
                         }
-                        DragTarget.AMMETER, DragTarget.JET -> {
-                            // Nếu có 2 ngón trong lúc kéo model → bỏ qua move (tránh “giật”)
-                            if (ev.pointerCount > 1) return@setOnTouchListener true
-
-                            val node = activeNode ?: return@setOnTouchListener true
-                            val (ro, rd) = screenRayForDrag(ev.x, ev.y) ?: return@setOnTouchListener true
-                            val hit = intersectRayWithPlane(ro, rd, Position(0f, tableTopY, 0f), Direction(y = 1f))
-                                ?: return@setOnTouchListener true
-
-                            var tx = hit.x + dragOffset.x
-                            var tz = hit.z + dragOffset.z
-                            tx = tx.coerceIn(minX, maxX)
-                            tz = tz.coerceIn(minZ, maxZ)
-                            node.position = Position(tx, tableTopY + 0.0005f, tz)
-                        }
                     }
-                    true
+                }
+
+                MotionEvent.ACTION_POINTER_DOWN -> {
+                    // Vào pinch: nếu đang kéo model thì dừng kéo
+                    if (dragTarget != DragTarget.BACKGROUND) dragging = false
+                    // lấy tâm đa ngón để lần pan kế tiếp mượt
+                    lastX = (0 until ev.pointerCount).sumOf { ev.getX(it).toDouble() }.toFloat() / ev.pointerCount
+                    lastY = (0 until ev.pointerCount).sumOf { ev.getY(it).toDouble() }.toFloat() / ev.pointerCount
+                    suppressNextMove = true
+                }
+
+                MotionEvent.ACTION_POINTER_UP -> {
+                    // khi còn lại 1 ngón, đồng bộ lại lastX/lastY theo ngón còn lại
+                    if (ev.pointerCount >= 2) {
+                        val remainingIndex = if (ev.actionIndex == 0) 1 else 0
+                        lastX = ev.getX(remainingIndex)
+                        lastY = ev.getY(remainingIndex)
+                    }
+                    suppressNextMove = true
+                    if (dragTarget != DragTarget.BACKGROUND) dragging = false
                 }
 
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     dragging = false
-                    true
+                    suppressNextMove = false
                 }
-
-                else -> false
             }
+
+            // Trả true ở CUỐI listener để nhận tiếp sự kiện
+            true
         }
     }
+
 
     private fun screenRayForDrag(x: Float, y: Float): Pair<Position, Direction>? {
         val w = sceneView.width.takeIf { it > 0 } ?: return null
@@ -281,105 +367,14 @@ class LabDragActivity : AppCompatActivity() {
             (fwd[1] + sx * right[1] + sy * camUp[1]),
             (fwd[2] + sx * right[2] + sy * camUp[2])
         )
-        val eye = sceneView.cameraNode.position
-        return Position(eye.x, eye.y, eye.z) to Direction(dir[0], dir[1], dir[2])
-    }
 
-
-
-    private fun enableObliqueControls(
-        minRadius: Float = 0.5f,
-        maxRadius: Float = 2f
-    ) {
-        sceneView.cameraManipulator = null
-
-        scaleDetector = ScaleGestureDetector(
-            this,
-            object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
-                override fun onScale(d: ScaleGestureDetector): Boolean {
-                    radius = (radius / d.scaleFactor).coerceIn(minRadius, maxRadius)
-                    updateCamera()
-                    return true
-                }
-            })
-
-        sceneView.setOnTouchListener { _, ev ->
-            scaleDetector.onTouchEvent(ev)
-
-            when (ev.actionMasked) {
-//                MotionEvent.ACTION_DOWN -> {
-//                    Log.d(TAG, "Touch down @(${ev.x}, ${ev.y})")
-//                    lastX = ev.x; lastY = ev.y
-//
-//                    val node = ammeterNode
-//                    val ray = screenRay(ev.x, ev.y)
-//                    if (node == null || ray == null) {
-//                        touchingModel = false
-//                        Log.d(TAG, "Touch miss (no node or no ray)")
-//                        return@setOnTouchListener true
-//                    }
-//
-//                    val (ro, rd) = ray
-//                    // 1) thử AABB nếu có (khỏi bỏ, nhưng không bắt buộc)
-//                    val aabb = getWorldAabb(node)
-//                    val hitByAabb = if (aabb != null) {
-//                        val (mn0, mx0) = aabb
-//                        val eps = 0.01f
-//                        val mn = Position(mn0.x - eps, mn0.y - eps, mn0.z - eps)
-//                        val mx = Position(mx0.x + eps, mx0.y + eps, mx0.z + eps)
-//                        val t = rayAabbT(ro, rd, mn, mx)
-//                        if (t != null) Log.d(TAG, "HIT Ammeter by AABB, t=$t")
-//                        t != null
-//                    } else {
-//                        Log.d(TAG, "No AABB available → fallback to footprint")
-//                        false
-//                    }
-//
-//                    // 2) fallback chắc chắn: footprint vòng tròn trên mặt bàn
-//                    val rPick = approxPickRadius(node)       // ~10cm * scale
-//                    val hitByCircle = hitByFootprintCircle(node, ro, rd, tableTopY, rPick)
-//
-//                    touchingModel = (hitByAabb || hitByCircle)
-//                    Log.d(TAG, if (touchingModel) "HIT Ammeter (AABB or Footprint)" else "Touch miss (background)")
-//                    return@setOnTouchListener true
-//                }
-
-
-                MotionEvent.ACTION_POINTER_DOWN -> if (ev.pointerCount == 2) {
-                    lastX = (ev.getX(0) + ev.getX(1)) / 2f
-                    lastY = (ev.getY(0) + ev.getY(1)) / 2f
-                }
-
-                MotionEvent.ACTION_MOVE -> {
-                    // Nếu ngón bắt đầu trên model -> KHÔNG pan (1 hoặc 2 ngón đều bỏ qua)
-                    if (touchingModel) return@setOnTouchListener true
-
-                    val isZooming = scaleDetector.isInProgress
-
-                    if (!isZooming && ev.pointerCount == 1) {
-                        val dx = ev.x - lastX
-                        val dy = ev.y - lastY
-                        lastX = ev.x; lastY = ev.y
-                        panScreenPlane(dx, dy)
-                    } else if (!isZooming && ev.pointerCount == 2) {
-                        val cx = (ev.getX(0) + ev.getX(1)) / 2f
-                        val cy = (ev.getY(0) + ev.getY(1)) / 2f
-                        val dx = cx - lastX
-                        val dy = cy - lastY
-                        lastX = cx; lastY = cy
-                        panScreenPlane(dx, dy)
-                    }
-                }
-
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    touchingModel = false
-                }
-            }
-            true
+// HOTFIX: nếu tia nhìn… ngước lên trời, lật Y lại để chắc chắn cắt được mặt bàn
+        var dy = dir[1]
+        if (dy >= 0f) {
+            dy = -dy
         }
-
-
-        updateCamera()
+        val eye = sceneView.cameraNode.position
+        return Position(eye.x, eye.y, eye.z) to Direction(dir[0], dy, dir[2])
     }
 
     private fun panScreenPlane(dxPx: Float, dyPx: Float) {
@@ -439,142 +434,6 @@ class LabDragActivity : AppCompatActivity() {
         return floatArrayOf(x/l, y/l, z/l)
     }
 
-    // Tính tia từ pixel (x,y) với camera yaw/pitch/fov hiện tại
-    private fun screenRay(x: Float, y: Float): Pair<Position, Direction>? {
-        // 1) Ưu tiên gọi API nội bộ nếu tồn tại
-        try {
-            val camField = sceneView::class.java.methods.firstOrNull {
-                it.name.equals("getCamera", true) && it.parameterTypes.isEmpty()
-            }
-            val cam = camField?.invoke(sceneView)
-            val m = cam?.javaClass?.methods?.firstOrNull {
-                it.name.lowercase().contains("screen") &&
-                        it.name.lowercase().contains("ray") &&
-                        it.parameterTypes.size == 2
-            }
-            if (m != null) {
-                val ray = m.invoke(cam, x, y)
-                val oM = ray.javaClass.methods.first { it.name.lowercase().contains("origin") }
-                val dM = ray.javaClass.methods.first { it.name.lowercase().contains("direction") }
-                val o = oM.invoke(ray)
-                val d = dM.invoke(ray)
-                fun anyToPos(v: Any): Position {
-                    fun g(n: String) = v.javaClass.methods.first { it.name.equals(n, true) && it.parameterTypes.isEmpty() }
-                    return Position(
-                        (g("getX").invoke(v) as Number).toFloat(),
-                        (g("getY").invoke(v) as Number).toFloat(),
-                        (g("getZ").invoke(v) as Number).toFloat()
-                    )
-                }
-                fun anyToDir(v: Any): Direction {
-                    fun g(n: String) = v.javaClass.methods.first { it.name.equals(n, true) && it.parameterTypes.isEmpty() }
-                    val dx = (g("getX").invoke(v) as Number).toFloat()
-                    val dy = (g("getY").invoke(v) as Number).toFloat()
-                    val dz = (g("getZ").invoke(v) as Number).toFloat()
-                    val len = kotlin.math.sqrt((dx*dx + dy*dy + dz*dz).toDouble()).toFloat().coerceAtLeast(1e-6f)
-                    return Direction(dx/len, dy/len, dz/len)
-                }
-                return anyToPos(o) to anyToDir(d)
-            }
-        } catch (_: Throwable) { /* ignore */ }
-
-        // 2) Fallback: tự tính theo yaw/pitch/fov hiện tại (đồng bộ dấu với pan của bạn)
-        val w = sceneView.width.takeIf { it > 0 } ?: return null
-        val h = sceneView.height.takeIf { it > 0 } ?: return null
-
-        val yaw = Math.toRadians(yawDeg.toDouble())
-        val pitch = Math.toRadians(pitchDeg.toDouble())
-        val cosP = cos(pitch); val sinP = sin(pitch)
-        val cosY = cos(yaw);   val sinY = sin(yaw)
-        val fwd = floatArrayOf((sinY * cosP).toFloat(), sinP.toFloat(), (cosY * cosP).toFloat())
-        val up = floatArrayOf(0f, 1f, 0f)
-        val right = run {
-            val r = cross(fwd[0], fwd[1], fwd[2], up[0], up[1], up[2])
-            norm(r[0], r[1], r[2])
-        }
-        val camUp = run {
-            val u = cross(right[0], right[1], right[2], fwd[0], fwd[1], fwd[2])
-            norm(u[0], u[1], u[2])
-        }
-
-        // NDC: đảo dấu X cho khớp với pan (bạn đã đảo ở panScreenPlane)
-        val ndcX = (2f * x / w) - 1f
-        val ndcY = 1f - (2f * y / h)
-
-        val aspect = w.toFloat() / h.toFloat()
-        val t = tan(Math.toRadians((fovDeg / 2f).toDouble())).toFloat()
-        val sx = ndcX * t * aspect
-        val sy = ndcY * t
-
-        val dir = norm(
-            (fwd[0] + sx * right[0] + sy * camUp[0]),
-            (fwd[1] + sx * right[1] + sy * camUp[1]),
-            (fwd[2] + sx * right[2] + sy * camUp[2])
-        )
-        val eye = sceneView.cameraNode.position
-        return Position(eye.x, eye.y, eye.z) to Direction(dir[0], dir[1], dir[2])
-    }
-
-
-    // Lấy AABB local của 1 ModelNode (min,max) bằng reflection
-    private fun getLocalAabb(node: ModelNode): Pair<Position, Position> {
-        val inst = node.modelInstance
-        val bboxM = inst.javaClass.methods.first { it.name.contains("bounding", true) }
-        val bbox = bboxM.invoke(inst)
-        val minM = bbox.javaClass.methods.first { it.name.contains("min", true) }
-        val maxM = bbox.javaClass.methods.first { it.name.contains("max", true) }
-        val vMin = minM.invoke(bbox); val vMax = maxM.invoke(bbox)
-
-        fun anyToPos(v: Any): Position {
-            fun g(n: String) = v.javaClass.methods.first { it.name.equals(n, true) && it.parameterTypes.isEmpty() }
-            return Position(
-                (g("getX").invoke(v) as Number).toFloat(),
-                (g("getY").invoke(v) as Number).toFloat(),
-                (g("getZ").invoke(v) as Number).toFloat()
-            )
-        }
-        return anyToPos(vMin) to anyToPos(vMax)
-    }
-
-    // Quy đổi AABB local -> world (giả định không rotation)
-    private fun getWorldAabb(node: ModelNode): Pair<Position, Position>? {
-        return try {
-            val inst = node.modelInstance
-            val bboxM = inst.javaClass.methods.first { it.name.contains("bounding", true) }
-            val bbox = bboxM.invoke(inst)
-            val minM = bbox.javaClass.methods.first { it.name.contains("min", true) }
-            val maxM = bbox.javaClass.methods.first { it.name.contains("max", true) }
-            val vMin = minM.invoke(bbox); val vMax = maxM.invoke(bbox)
-            fun anyToPos(v: Any): Position {
-                fun g(n: String) = v.javaClass.methods.first { it.name.equals(n, true) && it.parameterTypes.isEmpty() }
-                return Position(
-                    (g("getX").invoke(v) as Number).toFloat(),
-                    (g("getY").invoke(v) as Number).toFloat(),
-                    (g("getZ").invoke(v) as Number).toFloat()
-                )
-            }
-            val minL = anyToPos(vMin); val maxL = anyToPos(vMax)
-            val s = node.scale; val p = node.position
-            Position(p.x + minL.x*s.x, p.y + minL.y*s.y, p.z + minL.z*s.z) to
-                    Position(p.x + maxL.x*s.x, p.y + maxL.y*s.y, p.z + maxL.z*s.z)
-        } catch (_: Throwable) { null }
-    }
-
-    // Ray–AABB: trả t gần nhất nếu có giao cắt
-    private fun rayAabbT(ro: Position, rd: Direction, mn: Position, mx: Position): Float? {
-        var tmin = (if (rd.x >= 0) (mn.x - ro.x)/rd.x else (mx.x - ro.x)/rd.x)
-        var tmax = (if (rd.x >= 0) (mx.x - ro.x)/rd.x else (mn.x - ro.x)/rd.x)
-        val tymin = (if (rd.y >= 0) (mn.y - ro.y)/rd.y else (mx.y - ro.y)/rd.y)
-        val tymax = (if (rd.y >= 0) (mx.y - ro.y)/rd.y else (mn.y - ro.y)/rd.y)
-        if (tmin > tymax || tymin > tmax) return null
-        if (tymin > tmin) tmin = tymin; if (tymax < tmax) tmax = tymax
-        val tzmin = (if (rd.z >= 0) (mn.z - ro.z)/rd.z else (mx.z - ro.z)/rd.z)
-        val tzmax = (if (rd.z >= 0) (mx.z - ro.z)/rd.z else (mn.z - ro.z)/rd.z)
-        if (tmin > tzmax || tzmin > tmax) return null
-        if (tzmin > tmin) tmin = tzmin; if (tzmax < tmax) tmax = tzmax
-        return if (tmax < 0f) null else if (tmin >= 0f) tmin else tmax
-    }
-
     private fun intersectRayWithPlane(
         ro: Position, rd: Direction,
         planePoint: Position, planeNormal: Direction
@@ -591,27 +450,96 @@ class LabDragActivity : AppCompatActivity() {
         return Position(ro.x + rd.x*t, ro.y + rd.y*t, ro.z + rd.z*t)
     }
 
-    private fun hitByFootprintCircle(
-        node: ModelNode,
-        ro: Position, rd: Direction,
-        tableY: Float,
-        radius: Float
-    ): Boolean {
-        val hit = intersectRayWithPlane(ro, rd, Position(0f, tableY, 0f), Direction(y = 1f)) ?: return false
-        val pos = node.position
-        val dx = hit.x - pos.x
-        val dz = hit.z - pos.z
-        val d2 = dx*dx + dz*dz
-        Log.d(TAG, "Footprint check: hit=(${hit.x},${hit.y},${hit.z}), node=(${pos.x},${pos.y},${pos.z}), r=$radius, d2=$d2")
-        return d2 <= radius*radius
+    private fun toWorldAabb(node: ModelNode, aabbLocal: Pair<Position, Position>): Pair<Position, Position> {
+        val (minL, maxL) = aabbLocal
+        val s = node.scale; val p = node.position
+        val minW = Position(p.x + minL.x*s.x, p.y + minL.y*s.y, p.z + minL.z*s.z)
+        val maxW = Position(p.x + maxL.x*s.x, p.y + maxL.y*s.y, p.z + maxL.z*s.z)
+        return minW to maxW
     }
 
+    // Ray–AABB: trả t gần nhất nếu giao cắt, null nếu không
+    private fun rayAabbT(ro: Position, rd: Direction, mn: Position, mx: Position): Float? {
+        var tmin = (if (rd.x >= 0) (mn.x - ro.x)/rd.x else (mx.x - ro.x)/rd.x)
+        var tmax = (if (rd.x >= 0) (mx.x - ro.x)/rd.x else (mn.x - ro.x)/rd.x)
+        val tymin = (if (rd.y >= 0) (mn.y - ro.y)/rd.y else (mx.y - ro.y)/rd.y)
+        val tymax = (if (rd.y >= 0) (mx.y - ro.y)/rd.y else (mn.y - ro.y)/rd.y)
+        if (tmin > tymax || tymin > tmax) return null
+        if (tymin > tmin) tmin = tymin; if (tymax < tmax) tmax = tymax
+        val tzmin = (if (rd.z >= 0) (mn.z - ro.z)/rd.z else (mx.z - ro.z)/rd.z)
+        val tzmax = (if (rd.z >= 0) (mx.z - ro.z)/rd.z else (mn.z - ro.z)/rd.z)
+        if (tmin > tzmax || tzmin > tmax) return null
+        if (tzmin > tmin) tmin = tzmin; if (tzmax < tmax) tmax = tzmax
+        return if (tmax < 0f) null else if (tmin >= 0f) tmin else tmax
+    }
+
+    // Bán kính pick fallback (tuỳ chỉnh theo scale/model)
     private fun approxPickRadius(node: ModelNode): Float {
-        // nếu bạn scaleToUnits=0.1f thì chọn bán kính ~ 8-12cm là hợp lý
-        val s = node.scale
-        val base = 0.50f
-        // tăng nhẹ theo scale lớn nhất trục để an toàn
-        val k = maxOf(s.x, maxOf(s.y, s.z))
-        return base * k
+        // Tạm thời dùng giá trị “dễ trúng”: 12cm
+        return 0.12f
+    }
+
+    private fun raySphereT(ro: Position, rd: Direction, c: Position, r: Float): Float? {
+        val ox = ro.x - c.x; val oy = ro.y - c.y; val oz = ro.z - c.z
+        val b = ox*rd.x + oy*rd.y + oz*rd.z
+        val c2 = ox*ox + oy*oy + oz*oz - r*r
+        val disc = b*b - c2
+        if (disc < 0f) return null
+        val sqrtD = kotlin.math.sqrt(disc.toDouble()).toFloat()
+        val t1 = -b - sqrtD
+        val t2 = -b + sqrtD
+        return when {
+            t1 > 0f -> t1
+            t2 > 0f -> t2
+            else -> null
+        }
+    }
+
+    // Pick model gần nhất theo tia từ (x,y)
+    private fun pickInteractable(x: Float, y: Float): ModelNode? {
+        val ray = screenRayForDrag(x, y) ?: return null
+        val (ro, rd) = ray
+        Log.d(TAG, "Ray O=(${ro.x},${ro.y},${ro.z}) D=(${rd.x},${rd.y},${rd.z})")
+
+        var bestT = Float.POSITIVE_INFINITY
+        var best: ModelNode? = null
+
+        for (n in interactables) {
+            val local = localAabbCache[n]
+
+            if (local != null) {
+                // 1) Ray–AABB
+                val (mnW, mxW) = toWorldAabb(n, local)
+                val t = rayAabbT(ro, rd, mnW, mxW)
+                if (t != null && t > 0f && t < bestT) {
+                    bestT = t
+                    best = n
+                }
+            } else {
+                // 2) Fallback #1: Ray–Sphere quanh tâm node
+                val rSphere = approxPickRadius(n)
+                val tSphere = raySphereT(ro, rd, n.position, rSphere)
+                if (tSphere != null && tSphere < bestT) {
+                    bestT = tSphere
+                    best = n
+                } else {
+                    // 3) Fallback #2: footprint tròn trên mặt phẳng bàn
+                    val hit = intersectRayWithPlane(ro, rd, Position(0f, tableTopY, 0f), Direction(y = 1f))
+                    if (hit != null) {
+                        val dx = hit.x - n.position.x
+                        val dz = hit.z - n.position.z
+                        if (dx*dx + dz*dz <= rSphere*rSphere) {
+                            val tPlane = (hit.y - ro.y) / rd.y
+                            if (tPlane > 0f && tPlane < bestT) {
+                                bestT = tPlane
+                                best = n
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Log.d(TAG, "Picked result = ${best?.let { displayNames[it] } ?: "<none>"}  t=$bestT")
+        return best
     }
 }
