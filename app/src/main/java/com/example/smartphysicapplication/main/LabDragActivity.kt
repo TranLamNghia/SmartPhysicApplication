@@ -21,7 +21,7 @@ import kotlin.math.tan
 
 private const val TAG = "DragSimple"
 private enum class DragTarget { AMMETER, JET, BACKGROUND }
-private var dragTarget: DragTarget = DragTarget.AMMETER
+enum class Gesture { NONE, DRAG_MODEL, PAN_BG }
 
 class LabDragActivity : AppCompatActivity() {
     private val interactables = mutableListOf<ModelNode>()
@@ -30,8 +30,8 @@ class LabDragActivity : AppCompatActivity() {
     private lateinit var sceneView: SceneView
 
     private var tableTopY = 0f
-    private var minX = -1f; private var maxX = 1f
-    private var minZ = -1f; private var maxZ = 1f
+    private var minX = -0.75f; private var maxX = 0.75f
+    private var minZ = -0.75f; private var maxZ = 0.75f
 
     // Dụng cụ
     private var tableNode: ModelNode? = null
@@ -53,18 +53,25 @@ class LabDragActivity : AppCompatActivity() {
     private val minPitchDegDown = -65f
     private val maxPitchDegDown =  -5f
 
-    private var touchingModel = false
-    private var lastX = 0f
-    private var lastY = 0f
-    private lateinit var scaleDetector: ScaleGestureDetector
-
     private var eyeYOffset = 0f
 
     // ===== Giới hạn khung di chuyển (theo Ox/Oz) =====
     private val boundsMinX = -0.5f
     private val boundsMaxX =  0.5f
     private val boundsMinZ = -1.0f
-    private val boundsMaxZ =  0.2f
+    private val boundsMaxZ =  0.5f
+
+    private var downX = 0f
+    private var downY = 0f
+    private var hit0: Position? = null
+    private var basisU = floatArrayOf(0f,0f,0f)
+    private var basisV = floatArrayOf(0f,0f,0f)
+    private var nodeOffset: Position? = null
+
+    private var dragAnchor: Position? = null
+
+    private fun mulAdd(h: Position, u: FloatArray, du: Float, v: FloatArray, dv: Float): Position =
+        Position(h.x + u[0]*du + v[0]*dv, h.y + u[1]*du + v[1]*dv, h.z + u[2]*du + v[2]*dv)
 
     private fun getLocalAabbSafe(node: ModelNode): Pair<Position, Position>? {
         fun anyToPos(v: Any): Position? {
@@ -165,8 +172,6 @@ class LabDragActivity : AppCompatActivity() {
         sceneView.addChildNode(tableNode!!)
 
         tableTopY = 0f                       // nếu chưa có bàn riêng, để 0f
-        minX = -1.0f; maxX = 1.0f            // biên kéo tạm thời
-        minZ = -1.0f; maxZ = 1.0f
 
         // --- (2) Nạp Ammeter.glb (ModelNode độc lập) ---
         ammeterNode = ModelNode(
@@ -191,23 +196,6 @@ class LabDragActivity : AppCompatActivity() {
         registerInteractable(jetNode!!, "Jet")
         Log.d(TAG, "Interactables = ${interactables.map { displayNames[it] }}")
 
-        findViewById<Button>(R.id.btnAmmeter).setOnClickListener {
-            activeNode = ammeterNode
-            dragTarget = DragTarget.AMMETER
-            Log.d(TAG, "Active = Ammeter")
-        }
-
-        findViewById<Button>(R.id.btnJet).setOnClickListener {
-            activeNode = jetNode
-            dragTarget = DragTarget.JET
-            Log.d(TAG, "Active = Jet")
-        }
-
-        findViewById<Button>(R.id.btnBG).setOnClickListener {
-            activeNode = null
-            dragTarget = DragTarget.BACKGROUND
-            Log.d(TAG, "Active = Background (pan)")
-        }
 
         activeNode = ammeterNode
 
@@ -225,8 +213,7 @@ class LabDragActivity : AppCompatActivity() {
 
     @SuppressLint("ClickableViewAccessibility")
     private fun setupActiveNodeDrag() {
-        var dragging = false
-
+        var gesture = Gesture.NONE
         var lastX = 0f
         var lastY = 0f
         var suppressNextMove = false
@@ -235,7 +222,8 @@ class LabDragActivity : AppCompatActivity() {
             this,
             object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
                 override fun onScale(d: ScaleGestureDetector): Boolean {
-                    if (dragTarget == DragTarget.BACKGROUND) {
+                    // Chỉ zoom khi đang pan nền
+                    if (gesture == Gesture.PAN_BG) {
                         radius = (radius / d.scaleFactor).coerceIn(0.35f, 3.0f)
                         updateCamera()
                     }
@@ -252,85 +240,138 @@ class LabDragActivity : AppCompatActivity() {
 
                 MotionEvent.ACTION_DOWN -> {
                     lastX = ev.x; lastY = ev.y
+                    downX = ev.x; downY = ev.y
                     suppressNextMove = false
 
-                    if (dragTarget == DragTarget.BACKGROUND) {
-                        dragging = true
-                    } else {
-                        // Chọn model gần nhất tại điểm chạm
-                        val picked = pickInteractable(ev.x, ev.y)
-                        Log.d(TAG, "Picked = ${picked?.let { displayNames[it] } ?: "<none>"}")
+                    val picked = pickInteractable(ev.x, ev.y)
+                    if (picked != null) {
+                        // --- Bắt đầu DRAG_MODEL với cơ sở U,V cố định ---
                         activeNode = picked
-                        dragging = (picked != null)
+                        gesture = Gesture.DRAG_MODEL
+
+                        // Giao điểm tia @DOWN với mặt bàn
+                        val (ro0, rd0) = screenRayForDrag(ev.x, ev.y) ?: return@setOnTouchListener true
+                        val h0 = intersectRayWithPlane(ro0, rd0, Position(0f, tableTopY, 0f), Direction(y = 1f))
+                            ?: return@setOnTouchListener true
+
+                        // 1px theo X màn hình
+                        val (roX, rdX) = screenRayForDrag(ev.x + 1f, ev.y) ?: return@setOnTouchListener true
+                        val hX = intersectRayWithPlane(roX, rdX, Position(0f, tableTopY, 0f), Direction(y = 1f)) ?: h0
+                        basisU = floatArrayOf(hX.x - h0.x, hX.y - h0.y, hX.z - h0.z)
+
+                        // 1px theo Y màn hình
+                        val (roY, rdY) = screenRayForDrag(ev.x, ev.y + 1f) ?: return@setOnTouchListener true
+                        val hY = intersectRayWithPlane(roY, rdY, Position(0f, tableTopY, 0f), Direction(y = 1f)) ?: h0
+                        basisV = floatArrayOf(hY.x - h0.x, hY.y - h0.y, hY.z - h0.z)
+
+                        // Offset để model không "nhảy"
+                        hit0 = h0
+                        dragAnchor = h0
+                        nodeOffset = Position(
+                            picked.position.x - h0.x,
+                            0f,
+                            picked.position.z - h0.z
+                        )
+                    } else {
+                        // Không trúng model → pan nền
+                        activeNode = null
+                        gesture = Gesture.PAN_BG
                     }
+                    true
                 }
 
                 MotionEvent.ACTION_MOVE -> {
-                    // Bỏ qua frame MOVE đầu tiên sau pinch để tránh giật
+                    // Bỏ frame MOVE đầu sau pinch để tránh "giật"
                     if (suppressNextMove) {
                         lastX = ev.x; lastY = ev.y
                         suppressNextMove = false
-                    } else if (dragging) {
+                        return@setOnTouchListener true
+                    }
 
-                        if (dragTarget == DragTarget.BACKGROUND) {
-                            // Pan nền khi KHÔNG pinch
+                    when (gesture) {
+                        Gesture.PAN_BG -> {
+                            // Chỉ pan khi KHÔNG pinch
                             if (!scaleDetector.isInProgress) {
                                 val dx = ev.x - lastX
                                 val dy = ev.y - lastY
                                 lastX = ev.x; lastY = ev.y
                                 panScreenPlane(dx, dy)
                             }
-                        } else {
-                            // Kéo model theo screen-space delta (đi đúng theo tay)
-                            val node = activeNode
-                            if (node != null && ev.pointerCount == 1) {
-                                val dxPx = ev.x - lastX
-                                val dyPx = ev.y - lastY
-                                lastX = ev.x; lastY = ev.y
-
-                                val worldPerPx =
-                                    (2f * radius * tan(Math.toRadians((fovDeg / 2f).toDouble())).toFloat()) /
-                                            sceneView.height.toFloat()
-
-                                val dX = dxPx * worldPerPx   // sang phải = +X
-                                val dZ = dyPx * worldPerPx   // kéo xuống = +Z (khớp pan nền)
-
-                                val newX = (node.position.x + dX).coerceIn(minX, maxX)
-                                val newZ = (node.position.z + dZ).coerceIn(minZ, maxZ)
-                                node.position = Position(newX, tableTopY + 0.0005f, newZ)
-                            }
+                            true
                         }
+
+                        Gesture.DRAG_MODEL -> {
+                            val node = activeNode ?: return@setOnTouchListener true
+                            if (ev.pointerCount > 1) return@setOnTouchListener true
+
+                            // dịch chuyển nhỏ từ frame trước
+                            val dx = ev.x - lastX
+                            val dy = ev.y - lastY
+                            lastX = ev.x; lastY = ev.y
+
+                            val anchor = dragAnchor ?: return@setOnTouchListener true
+                            val off    = nodeOffset ?: return@setOnTouchListener true
+
+                            // TÍNH basisU/V TẠI VỊ TRÍ HIỆN TẠI (mỗi frame)
+                            val (roC, rdC) = screenRayForDrag(ev.x, ev.y) ?: return@setOnTouchListener true
+                            val hC = intersectRayWithPlane(roC, rdC, Position(0f, tableTopY, 0f), Direction(y = 1f)) ?: anchor
+
+                            val (roCX, rdCX) = screenRayForDrag(ev.x + 1f, ev.y) ?: return@setOnTouchListener true
+                            val hCX = intersectRayWithPlane(roCX, rdCX, Position(0f, tableTopY, 0f), Direction(y = 1f)) ?: hC
+                            val uNow = floatArrayOf(hCX.x - hC.x, hCX.y - hC.y, hCX.z - hC.z)
+
+                            val (roCY, rdCY) = screenRayForDrag(ev.x, ev.y + 1f) ?: return@setOnTouchListener true
+                            val hCY = intersectRayWithPlane(roCY, rdCY, Position(0f, tableTopY, 0f), Direction(y = 1f)) ?: hC
+                            val vNow = floatArrayOf(hCY.x - hC.x, hCY.y - hC.y, hCY.z - hC.z)
+
+                            // Cập nhật neo theo delta px hiện tại (tích lũy)
+                            val newAnchor = mulAdd(anchor, uNow, dx, vNow, dy)
+                            dragAnchor = newAnchor
+
+                            var tx = newAnchor.x + off.x
+                            var tz = newAnchor.z + off.z
+                            tx = tx.coerceIn(minX, maxX)
+                            tz = tz.coerceIn(minZ, maxZ)
+                            node.position = Position(tx, tableTopY + 0.0005f, tz)
+                            true
+                        }
+
+
+                        else -> true
                     }
                 }
 
                 MotionEvent.ACTION_POINTER_DOWN -> {
-                    // Vào pinch: nếu đang kéo model thì dừng kéo
-                    if (dragTarget != DragTarget.BACKGROUND) dragging = false
-                    // lấy tâm đa ngón để lần pan kế tiếp mượt
+                    // Khi thành 2 ngón: nếu đang kéo model → chuyển sang pan/zoom nền
+                    if (gesture == Gesture.DRAG_MODEL) {
+                        gesture = Gesture.PAN_BG
+                    }
+                    // Đồng bộ lastX/Y theo tâm đa ngón để pan mượt
                     lastX = (0 until ev.pointerCount).sumOf { ev.getX(it).toDouble() }.toFloat() / ev.pointerCount
                     lastY = (0 until ev.pointerCount).sumOf { ev.getY(it).toDouble() }.toFloat() / ev.pointerCount
                     suppressNextMove = true
+                    true
                 }
 
                 MotionEvent.ACTION_POINTER_UP -> {
-                    // khi còn lại 1 ngón, đồng bộ lại lastX/lastY theo ngón còn lại
+                    // Còn lại 1 ngón → đồng bộ lastX/lastY theo ngón còn lại
                     if (ev.pointerCount >= 2) {
                         val remainingIndex = if (ev.actionIndex == 0) 1 else 0
                         lastX = ev.getX(remainingIndex)
                         lastY = ev.getY(remainingIndex)
                     }
                     suppressNextMove = true
-                    if (dragTarget != DragTarget.BACKGROUND) dragging = false
+                    true
                 }
 
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    dragging = false
+                    gesture = Gesture.NONE
                     suppressNextMove = false
+                    true
                 }
-            }
 
-            // Trả true ở CUỐI listener để nhận tiếp sự kiện
-            true
+                else -> false
+            }
         }
     }
 
@@ -343,8 +384,9 @@ class LabDragActivity : AppCompatActivity() {
         val pitch = Math.toRadians(pitchDeg.toDouble())
         val cosP = cos(pitch); val sinP = sin(pitch)
         val cosY = cos(yaw);   val sinY = sin(yaw)
+
         val fwd = floatArrayOf((sinY * cosP).toFloat(), sinP.toFloat(), (cosY * cosP).toFloat())
-        val up = floatArrayOf(0f, 1f, 0f)
+        val up  = floatArrayOf(0f, 1f, 0f)
         val right = run {
             val r = cross(fwd[0], fwd[1], fwd[2], up[0], up[1], up[2])
             norm(r[0], r[1], r[2])
@@ -362,20 +404,19 @@ class LabDragActivity : AppCompatActivity() {
         val sx = ndcX * t * aspect
         val sy = ndcY * t
 
-        val dir = norm(
+        val d = norm(
             (fwd[0] + sx * right[0] + sy * camUp[0]),
             (fwd[1] + sx * right[1] + sy * camUp[1]),
             (fwd[2] + sx * right[2] + sy * camUp[2])
         )
 
-// HOTFIX: nếu tia nhìn… ngước lên trời, lật Y lại để chắc chắn cắt được mặt bàn
-        var dy = dir[1]
-        if (dy >= 0f) {
-            dy = -dy
-        }
+        // Nếu gần song song mặt phẳng bàn → đẩy nhẹ xuống để đảm bảo cắt y=tableTopY
+        val rdY = if (kotlin.math.abs(d[1]) < 1e-4f) (if (d[1] >= 0f) -1e-4f else -d[1]) else d[1]
+
         val eye = sceneView.cameraNode.position
-        return Position(eye.x, eye.y, eye.z) to Direction(dir[0], dy, dir[2])
+        return Position(eye.x, eye.y, eye.z) to Direction(d[0], rdY, d[2])
     }
+
 
     private fun panScreenPlane(dxPx: Float, dyPx: Float) {
         if (sceneView.height == 0) return
