@@ -60,7 +60,7 @@ class HomeFragment : Fragment() {
         }
 
         btnVirtualLab.setOnClickListener {
-//            (activity as? MainActivity)?.loadFragment(VirtualLabFragment())
+            (activity as? MainActivity)?.loadFragment(VirtualLabFragment())
         }
 
         learningPathIcon.setOnClickListener {

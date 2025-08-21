@@ -15,4 +15,4 @@
 local.properties
 *.log
 .gradle.properties
-/app
+/app/release/
