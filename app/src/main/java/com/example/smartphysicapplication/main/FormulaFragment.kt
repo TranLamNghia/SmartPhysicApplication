@@ -61,16 +61,16 @@ class FormulaFragment : Fragment() {
         // cards
         card1 = view.findViewById(R.id.card_formula_1)
         card2 = view.findViewById(R.id.card_formula_2)
-        card3 = view.findViewById(R.id.card_formula_3)
-        card4 = view.findViewById(R.id.card_formula_4)
-        card5 = view.findViewById(R.id.card_formula_5)
-        card6 = view.findViewById(R.id.card_formula_6)
-        card7 = view.findViewById(R.id.card_formula_7)
-        card8 = view.findViewById(R.id.card_formula_8)
-        card9 = view.findViewById(R.id.card_formula_9)
+//        card3 = view.findViewById(R.id.card_formula_3)
+//        card4 = view.findViewById(R.id.card_formula_4)
+//        card5 = view.findViewById(R.id.card_formula_5)
+//        card6 = view.findViewById(R.id.card_formula_6)
+//        card7 = view.findViewById(R.id.card_formula_7)
+//        card8 = view.findViewById(R.id.card_formula_8)
+//        card9 = view.findViewById(R.id.card_formula_9)
 
         allPairs = listOf(
-            item1 to card1, item2 to card2, item3 to card3, item4 to card4, item5 to card5, item6 to card6, item7 to card7, item8 to card8, item9 to card9
+            item1 to card1, item2 to card2//, item3 to card3, item4 to card4, item5 to card5, item6 to card6, item7 to card7, item8 to card8, item9 to card9
         )
         allCards = allPairs.map { it.second }
 

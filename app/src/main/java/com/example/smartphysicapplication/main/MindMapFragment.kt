@@ -54,12 +54,12 @@ class MindMapFragment : Fragment() {
         // cards
         card1 = view.findViewById(R.id.card_lesson_1)
         card2 = view.findViewById(R.id.card_lesson_2)
-        card3 = view.findViewById(R.id.card_lesson_3)
-        card4 = view.findViewById(R.id.card_lesson_4)
-        card5 = view.findViewById(R.id.card_lesson_5)
+//        card3 = view.findViewById(R.id.card_lesson_3)
+//        card4 = view.findViewById(R.id.card_lesson_4)
+//        card5 = view.findViewById(R.id.card_lesson_5)
 
         allPairs = listOf(
-            item1 to card1, item2 to card2, item3 to card3, item4 to card4, item5 to card5
+            item1 to card1, item2 to card2//, item3 to card3, item4 to card4, item5 to card5
         )
         allCards = allPairs.map { it.second }
 
