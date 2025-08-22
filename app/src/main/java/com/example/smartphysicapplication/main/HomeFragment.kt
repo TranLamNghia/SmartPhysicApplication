@@ -52,19 +52,19 @@ class HomeFragment : Fragment() {
         }
 
         btnPhysics11.setOnClickListener {
-            (activity as? MainActivity)?.loadFragment(PhysicsSubjectFragment.newInstance("VẬT LÝ 11"))
+            (activity as? MainActivity)?.navigateIfChanged(PhysicsSubjectFragment.newInstance("VẬT LÝ 11"))
         }
 
         btnPhysics12.setOnClickListener {
-            (activity as? MainActivity)?.loadFragment(PhysicsSubjectFragment.newInstance("VẬT LÝ 12"))
+            (activity as? MainActivity)?.navigateIfChanged(PhysicsSubjectFragment.newInstance("VẬT LÝ 12"))
         }
 
         btnVirtualLab.setOnClickListener {
-            (activity as? MainActivity)?.loadFragment(VirtualLabFragment())
+            (activity as? MainActivity)?.navigateIfChanged(VirtualLabFragment())
         }
 
         learningPathIcon.setOnClickListener {
-            (activity as? MainActivity)?.loadFragment(LearningPathFragment())
+            (activity as? MainActivity)?.navigateIfChanged(LearningPathFragment())
         }
 
         gamificationPathIcon.setOnClickListener {

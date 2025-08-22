@@ -53,17 +53,18 @@ class VirtualLabFragment : Fragment() {
             showPasteLinkDialog()
         }
 
-//        ALab.setOnClickListener {
-//            val intent = Intent(requireContext(), ModelViewerNativeActivity::class.java)
-//            startActivity(intent)
-//        }
-
     }
 
     private fun onLabClick(item: LabItem) {
         when (item) {
-            LabItem.New -> {/* tạo mới */}
-            is LabItem.Existing -> {/* mở lab */}
+            LabItem.New -> {
+                val intent = Intent(requireContext(), LabDragActivity::class.java)
+                startActivity(intent)
+            }
+            is LabItem.Existing -> {
+                val intent = Intent(requireContext(), ModelViewerNativeActivity::class.java)
+                startActivity(intent)
+            }
         }
     }
 

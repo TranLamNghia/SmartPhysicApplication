@@ -24,7 +24,7 @@ class BuyCoursesFragment : Fragment() {
         btnBack = view.findViewById(R.id.btn_back)
 
         btnBack.setOnClickListener {
-            (activity as? MainActivity)?.loadFragment(HomeFragment())
+            parentFragmentManager.popBackStack()
         }
 
     }

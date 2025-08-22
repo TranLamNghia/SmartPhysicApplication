@@ -63,11 +63,11 @@ class PhysicsSubjectFragment : Fragment() {
         }
 
         btnMindMap.setOnClickListener {
-            (activity as? MainActivity)?.loadFragment(MindMapFragment())
+            (activity as? MainActivity)?.navigateIfChanged(MindMapFragment())
         }
 
         btnFormula.setOnClickListener {
-            (activity as? MainActivity)?.loadFragment(FormulaFragment())
+            (activity as? MainActivity)?.navigateIfChanged(FormulaFragment())
         }
 
         setupChaptersRecyclerView()
@@ -115,7 +115,7 @@ class PhysicsSubjectFragment : Fragment() {
 
                 val videoId = topicObj?.videoId ?: ""
 
-                (activity as? MainActivity)?.loadFragment(
+                (activity as? MainActivity)?.navigateIfChanged(
                     VideoLectureFragment.newInstance(
                         subjectTitleTextView.text.toString(),
                         topic,

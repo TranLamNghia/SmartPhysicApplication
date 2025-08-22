@@ -18,56 +18,50 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Nút Xoá tất cả (trái, vertical center) -->
-
-
-        <FrameLayout
-            android:id="@+id/nav_button"
-            android:layout_width="wrap_content"
-            android:layout_height="250dp"
-            android:background="@drawable/title_panel_backround"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+            android:background="@drawable/headersheet_background">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginStart="20dp"
+                android:src="@drawable/ic_back"
+                app:tint="@color/green_600"/>
 
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/btnDeleteAll"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/button_outlined"
-                    android:paddingHorizontal="5dp"
-                    android:paddingVertical="8dp"
-                    android:text="Xoá tất cả"
-                    android:textSize="@dimen/text_answer"
-                    android:textColor="@android:color/white"
-                    app:layout_constraintBottom_toTopOf="@id/btnBack"
-                    app:layout_constraintEnd_toEndOf="@id/nav_button"
-                    app:layout_constraintStart_toStartOf="@id/nav_button"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:ignore="NotSibling" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="THÍ NGHIỆM MỚI"
+                android:layout_marginStart="20dp"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/green_700" />
 
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/btnBack"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/button_outlined"
-                    android:paddingVertical="8dp"
-                    android:text="Back"
-                    android:textSize="@dimen/text_answer"
-                    android:textColor="@android:color/white"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/btnDeleteAll"
-                    tools:ignore="NotSibling" />
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
-        </FrameLayout>
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnDeleteAll"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_outlined"
+                android:paddingHorizontal="5dp"
+                android:paddingVertical="8dp"
+                android:layout_marginEnd="20dp"
+                android:text="Xoá tất cả"
+                android:textSize="@dimen/text_answer"
+                android:textColor="@android:color/white"/>
 
+        </LinearLayout>
 
         <!-- Guideline dọc 70% (panel phải 30% width) -->
         <androidx.constraintlayout.widget.Guideline
@@ -99,6 +93,7 @@
             android:layout_height="0dp"
             android:background="@drawable/title_panel_backround"
             android:padding="12dp"
+            android:visibility="gone"
             app:layout_constraintStart_toStartOf="@id/guideline70w"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/guideline15h"
@@ -108,42 +103,46 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <ScrollView
-                    android:id="@+id/scrollDetails"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toTopOf="@id/btnRow"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingBottom="12dp"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent">
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="Chi tiết vật thể"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:paddingBottom="12dp">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="12dp">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Chi tiết vật thể"
-                            android:textStyle="bold"
-                            android:textSize="18sp" />
+                            android:text="Tên vật thể: "
+                            android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/item_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Vị trí: x=0.0, y=0.0, z=0.0" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Kích thước: 1.0" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Góc quay: 0°" />
+                            android:layout_marginStart="2dp"
+                            android:text="asdasd" />
+
                     </LinearLayout>
-                </ScrollView>
+
+                </LinearLayout>
 
                 <!-- Hàng nút Hoàn tất & Xoá -->
                 <LinearLayout
@@ -189,10 +188,10 @@
     <FrameLayout
         android:id="@+id/bottomSheet"
         android:layout_width="match_parent"
-        android:layout_height="280dp"
+        android:layout_height="120dp"
         android:background="@drawable/bottomsheet_background"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        app:behavior_peekHeight="28dp"
+        app:behavior_peekHeight="40dp"
         app:behavior_hideable="false">
 
         <LinearLayout

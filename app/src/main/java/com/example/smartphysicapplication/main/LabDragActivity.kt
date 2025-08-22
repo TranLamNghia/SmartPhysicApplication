@@ -5,8 +5,12 @@ import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
+import android.view.View
 import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatButton
 import com.example.smartphysicapplication.R
 import io.github.sceneview.SceneView
 import io.github.sceneview.math.Direction
@@ -69,6 +73,11 @@ class LabDragActivity : AppCompatActivity() {
     private var nodeOffset: Position? = null
 
     private var dragAnchor: Position? = null
+
+    private lateinit var panelDetails: View
+    private lateinit var tvItemName: TextView
+    private lateinit var btnDone: AppCompatButton
+    private lateinit var btnDelete: AppCompatButton
 
     private fun mulAdd(h: Position, u: FloatArray, du: Float, v: FloatArray, dv: Float): Position =
         Position(h.x + u[0]*du + v[0]*dv, h.y + u[1]*du + v[1]*dv, h.z + u[2]*du + v[2]*dv)
@@ -153,12 +162,49 @@ class LabDragActivity : AppCompatActivity() {
         localAabbCache.remove(node)
     }
 
+    private fun deleteAllModels() {
+        // Duyệt và xóa khỏi SceneView
+        for (node in interactables.toList()) {
+            sceneView.removeChildNode(node)
+        }
+        // Clear danh sách quản lý
+        interactables.clear()
+        displayNames.clear()
+        localAabbCache.clear()
+
+        activeNode = null
+        hideDetails()
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_lab_drag)   // dùng layout 1 SceneView + nút Back mà bạn đã có
 
         sceneView = findViewById(R.id.sceneView)
-        findViewById<android.widget.Button>(R.id.btnBack).setOnClickListener { finish() }
+        findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
+        val btnDeleteAll = findViewById<AppCompatButton>(R.id.btnDeleteAll)
+        btnDeleteAll.setOnClickListener {
+            deleteAllModels()
+        }
+
+        panelDetails = findViewById(R.id.panelDetails)
+        tvItemName   = findViewById(R.id.item_name)
+        btnDone      = findViewById(R.id.btnDone)
+        btnDelete    = findViewById(R.id.btnDelete)
+
+        btnDone.setOnClickListener {
+            activeNode = null
+            hideDetails()
+        }
+        btnDelete.setOnClickListener {
+            activeNode?.let {
+                sceneView.removeChildNode(it)
+                unregisterInteractable(it)
+                activeNode = null
+            }
+            hideDetails()
+        }
 
         // Ánh sáng
         sceneView.mainLightNode = LightNode(
@@ -248,6 +294,7 @@ class LabDragActivity : AppCompatActivity() {
                         // --- Bắt đầu DRAG_MODEL với cơ sở U,V cố định ---
                         activeNode = picked
                         gesture = Gesture.DRAG_MODEL
+                        showDetails(picked)
 
                         // Giao điểm tia @DOWN với mặt bàn
                         val (ro0, rd0) = screenRayForDrag(ev.x, ev.y) ?: return@setOnTouchListener true
@@ -276,6 +323,7 @@ class LabDragActivity : AppCompatActivity() {
                         // Không trúng model → pan nền
                         activeNode = null
                         gesture = Gesture.PAN_BG
+                        hideDetails()
                     }
                     true
                 }
@@ -365,6 +413,7 @@ class LabDragActivity : AppCompatActivity() {
                 }
 
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    if (activeNode == null) hideDetails()
                     gesture = Gesture.NONE
                     suppressNextMove = false
                     true
@@ -582,5 +631,23 @@ class LabDragActivity : AppCompatActivity() {
         }
         Log.d(TAG, "Picked result = ${best?.let { displayNames[it] } ?: "<none>"}  t=$bestT")
         return best
+    }
+
+    private fun showDetails(node: ModelNode) {
+        tvItemName.text = displayNames[node] ?: node.name ?: "Model"
+        if (panelDetails.visibility != View.VISIBLE) {
+            panelDetails.alpha = 0f
+            panelDetails.visibility = View.VISIBLE
+            panelDetails.animate().alpha(1f).setDuration(150).start()
+        }
+    }
+
+    private fun hideDetails() {
+        if (panelDetails.visibility == View.VISIBLE) {
+            panelDetails.animate()
+                .alpha(0f).setDuration(120)
+                .withEndAction { panelDetails.visibility = View.GONE; panelDetails.alpha = 1f }
+                .start()
+        }
     }
 }
