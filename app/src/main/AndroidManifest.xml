@@ -13,9 +13,9 @@
         android:theme="@style/Theme.SmartPhysicApplication"
         tools:targetApi="31">
         <activity
-            android:name=".main.LabDragActivity"
+            android:name=".main.WelcomeActivity"
             android:exported="true"
-            android:screenOrientation="landscape">
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -38,7 +38,7 @@
             android:screenOrientation="landscape">
         </activity>
         <activity
-            android:name=".main.WelcomeActivity"
+            android:name=".main.LabDragActivity"
             android:screenOrientation="landscape">
         </activity>
     </application>

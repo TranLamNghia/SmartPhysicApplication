@@ -3,15 +3,21 @@ package com.example.smartphysicapplication.main
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
+import androidx.core.content.ContentProviderCompat
 import com.example.smartphysicapplication.R
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import io.github.sceneview.SceneView
 import io.github.sceneview.math.Direction
 import io.github.sceneview.math.Position
@@ -24,7 +30,6 @@ import kotlin.math.sin
 import kotlin.math.tan
 
 private const val TAG = "DragSimple"
-private enum class DragTarget { AMMETER, JET, BACKGROUND }
 enum class Gesture { NONE, DRAG_MODEL, PAN_BG }
 
 class LabDragActivity : AppCompatActivity() {
@@ -32,6 +37,7 @@ class LabDragActivity : AppCompatActivity() {
     private val displayNames = mutableMapOf<ModelNode, String>()
     private val localAabbCache = mutableMapOf<ModelNode, Pair<Position, Position>>()
     private lateinit var sceneView: SceneView
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<FrameLayout>
 
     private var tableTopY = 0f
     private var minX = -0.75f; private var maxX = 0.75f
@@ -174,15 +180,21 @@ class LabDragActivity : AppCompatActivity() {
 
         activeNode = null
         hideDetails()
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
     }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_lab_drag)   // dùng layout 1 SceneView + nút Back mà bạn đã có
+        setContentView(R.layout.activity_lab_drag)
+
+        val bottomSheet = findViewById<FrameLayout>(R.id.bottomSheet)
+        bottomSheetBehavior = com.google.android.material.bottomsheet.BottomSheetBehavior.from(bottomSheet)
 
         sceneView = findViewById(R.id.sceneView)
         findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
+        findViewById<AppCompatButton>(R.id.btnShare).setOnClickListener {
+            Toast.makeText(this, "Đã sao chép đường dẫn chia sẻ \n vatlythongminh//TLN147", Toast.LENGTH_SHORT).show()
+        }
         val btnDeleteAll = findViewById<AppCompatButton>(R.id.btnDeleteAll)
         btnDeleteAll.setOnClickListener {
             deleteAllModels()
@@ -213,35 +225,11 @@ class LabDragActivity : AppCompatActivity() {
 
         setupEnvironment()
 
-//         --- (1) Nạp bàn nếu có (bỏ qua nếu bạn chưa tách bàn thành GLB riêng) ---
         tableNode = ModelNode(modelInstance = sceneView.modelLoader.createModelInstance("models/Table.glb"), scaleToUnits = 3f)
         sceneView.addChildNode(tableNode!!)
 
-        tableTopY = 0f                       // nếu chưa có bàn riêng, để 0f
-
-        // --- (2) Nạp Ammeter.glb (ModelNode độc lập) ---
-        ammeterNode = ModelNode(
-            modelInstance = sceneView.modelLoader.createModelInstance("models/Ammeter.glb"),
-            autoAnimate = false,
-            scaleToUnits = 0.1f
-        )
-        ammeterNode!!.position = Position(0f, tableTopY, 0f)
-        sceneView.addChildNode(ammeterNode!!)
-
-        jetNode = ModelNode(
-            modelInstance = sceneView.modelLoader.createModelInstance("models/Jet.glb"),
-            autoAnimate = false,
-            scaleToUnits = 0.1f
-        ).apply {
-            position = Position(+0.2f, tableTopY, 0.0f)
-        }
-        sceneView.addChildNode(jetNode!!)
-
-        // Đăng kí NODE
-        registerInteractable(ammeterNode!!, "Ammeter")
-        registerInteractable(jetNode!!, "Jet")
-        Log.d(TAG, "Interactables = ${interactables.map { displayNames[it] }}")
-
+        tableTopY = 0f
+        populateModelTray()
 
         activeNode = ammeterNode
 
@@ -249,6 +237,57 @@ class LabDragActivity : AppCompatActivity() {
         updateCamera()
 
         setupActiveNodeDrag()
+    }
+
+    data class ModelChip(val id: String, val name: String, val iconRes: Int)
+
+    private fun populateModelTray() {
+        val tray = findViewById<LinearLayout>(R.id.modelTray)
+        tray.removeAllViews()
+
+        val items = listOf(
+            ModelChip("ammeter", "Ammeter", R.drawable.ic_cube),
+            ModelChip("jet", "Jet", R.drawable.ic_sphere),
+            ModelChip("robot", "Robot", R.drawable.ic_cylinder),
+            // thêm…
+        )
+
+        val inflater = LayoutInflater.from(this)
+        items.forEach { m ->
+            val v = inflater.inflate(R.layout.item_model_chip, tray, false)
+            val img = v.findViewById<ImageView>(R.id.imgModel)
+            val tv  = v.findViewById<TextView>(R.id.tvModel)
+            img.setImageResource(m.iconRes)
+            tv.text = m.name
+
+            v.setOnClickListener { addModelFromChip(m) }
+
+            tray.addView(v)
+        }
+    }
+
+    private fun addModelFromChip(m: ModelChip) {
+        when (m.id) {
+            "ammeter" -> addModel("models/Ammeter.glb", name = "Ammeter", units = 0.15f)
+            "jet" -> addModel("models/Jet.glb", name = "Jet", units = 0.15f)
+            "robot" -> addModel("models/Robot.glb", name = "Robot", units = 0.15f)
+            else -> return
+        }
+    }
+
+    private fun addModel(assetPath: String, name: String, units: Float) {
+        val node = ModelNode(
+            modelInstance = sceneView.modelLoader.createModelInstance(assetPath),
+            autoAnimate = false,
+            scaleToUnits = units
+        ).apply {
+            position = Position(0f, tableTopY, 0f) // hoặc vị trí spawn mong muốn
+        }
+        sceneView.addChildNode(node)
+        registerInteractable(node, name)
+        activeNode = node
+        showDetails(node)
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
     }
 
     private fun setupEnvironment() {

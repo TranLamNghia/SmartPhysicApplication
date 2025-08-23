@@ -50,43 +50,52 @@
                 android:layout_weight="1"/>
 
             <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnShare"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_outlined"
+                android:layout_marginEnd="20dp"
+                android:layout_marginVertical="5dp"
+                android:text="Chia sẻ"
+                android:textSize="@dimen/text_answer"
+                android:drawableStart="@drawable/ic_share"
+                android:textColor="@android:color/white"/>
+
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnDeleteAll"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/button_outlined"
-                android:paddingHorizontal="5dp"
-                android:paddingVertical="8dp"
                 android:layout_marginEnd="20dp"
+                android:layout_marginVertical="5dp"
                 android:text="Xoá tất cả"
                 android:textSize="@dimen/text_answer"
+                android:drawableStart="@drawable/ic_trash"
                 android:textColor="@android:color/white"/>
 
         </LinearLayout>
 
-        <!-- Guideline dọc 70% (panel phải 30% width) -->
         <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline70w"
+            android:id="@+id/guideline75w"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.70" />
+            app:layout_constraintGuide_percent="0.75" />
 
-        <!-- Hai guideline ngang để đạt 70% height (15%..85%) -->
         <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline15h"
+            android:id="@+id/guideline25h"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.15" />
+            app:layout_constraintGuide_percent="0.25" />
 
         <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline85h"
+            android:id="@+id/guideline75h"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.85" />
+            app:layout_constraintGuide_percent="0.75" />
 
-        <!-- Panel chi tiết (phải, 30% width, 70% height) -->
         <FrameLayout
             android:id="@+id/panelDetails"
             android:layout_width="0dp"
@@ -94,10 +103,10 @@
             android:background="@drawable/title_panel_backround"
             android:padding="12dp"
             android:visibility="gone"
-            app:layout_constraintStart_toStartOf="@id/guideline70w"
+            app:layout_constraintStart_toStartOf="@id/guideline75w"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/guideline15h"
-            app:layout_constraintBottom_toBottomOf="@id/guideline85h">
+            app:layout_constraintTop_toTopOf="@id/guideline25h"
+            app:layout_constraintBottom_toBottomOf="@id/guideline75h">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -118,7 +127,8 @@
                         android:layout_gravity="center"
                         android:text="Chi tiết vật thể"
                         android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="@color/white"/>
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -131,14 +141,15 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Tên vật thể: "
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            android:textColor="@color/white"/>
 
                         <TextView
                             android:id="@+id/item_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="2dp"
-                            android:text="asdasd" />
+                            android:textColor="@color/white"/>
 
                     </LinearLayout>
 
@@ -185,6 +196,7 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Bottom sheet “bookmark” (cần Material lib cho Behavior) -->
+
     <FrameLayout
         android:id="@+id/bottomSheet"
         android:layout_width="match_parent"
@@ -226,29 +238,6 @@
                     android:orientation="horizontal"
                     android:gravity="center_vertical">
 
-                    <ImageButton
-                        android:id="@+id/btnModelCube"
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        android:background="@drawable/icon_background"
-                        android:contentDescription="Cube"
-                        android:src="@drawable/ic_cube" />
-
-                    <ImageButton
-                        android:id="@+id/btnModelSphere"
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        android:background="@drawable/icon_background"
-                        android:contentDescription="Sphere"
-                        android:src="@drawable/ic_sphere" />
-
-                    <ImageButton
-                        android:id="@+id/btnModelCylinder"
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        android:background="@drawable/icon_background"
-                        android:contentDescription="Cylinder"
-                        android:src="@drawable/ic_cylinder" />
                 </LinearLayout>
             </HorizontalScrollView>
         </LinearLayout>

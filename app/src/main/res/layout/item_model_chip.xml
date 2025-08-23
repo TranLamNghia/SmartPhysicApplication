@@ -1,0 +1,42 @@
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="88dp"
+    android:layout_height="88dp"
+    android:layout_marginEnd="12dp"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="2dp"
+    android:foreground="?attr/selectableItemBackground">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="8dp">
+
+        <!-- Ảnh model ở trung tâm -->
+        <ImageView
+            android:id="@+id/imgModel"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:scaleType="centerInside"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/tvModel"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Tên model ở đáy -->
+        <TextView
+            android:id="@+id/tvModel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Model"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>
