@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
-import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -15,19 +14,14 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
-import androidx.core.content.ContentProviderCompat
 import com.example.smartphysicapplication.R
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import io.github.sceneview.SceneView
 import io.github.sceneview.math.Direction
 import io.github.sceneview.math.Position
-import io.github.sceneview.math.Scale
 import io.github.sceneview.node.LightNode
 import io.github.sceneview.node.ModelNode
-import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.tan
+import kotlin.math.*
 
 private const val TAG = "DragSimple"
 enum class Gesture { NONE, DRAG_MODEL, PAN_BG }
@@ -45,8 +39,6 @@ class LabDragActivity : AppCompatActivity() {
 
     // Dụng cụ
     private var tableNode: ModelNode? = null
-    private var ammeterNode: ModelNode? = null
-    private var jetNode: ModelNode? = null
     private var activeNode: ModelNode? = null
 
     private var centerX = 0f
@@ -59,7 +51,6 @@ class LabDragActivity : AppCompatActivity() {
 
     private var fovDeg   = 60f
 
-    // Giới hạn yaw/pitch
     private val minPitchDegDown = -65f
     private val maxPitchDegDown =  -5f
 
@@ -139,15 +130,11 @@ class LabDragActivity : AppCompatActivity() {
         }
 
         val inst = node.modelInstance
-        // 1) Thử trực tiếp trên instance
         var bbox = findBbox(inst)
-        // 2) Nếu không có, thử qua asset
         if (bbox == null) bbox = findBbox(findAsset(inst))
-        // 3) Nếu vẫn không có → đành chịu (null)
         val local = bbox?.let { extractMinMax(it) } ?: return null
         return local
     }
-
 
     private fun registerInteractable(node: ModelNode, name: String = node.name ?: "Unnamed") {
         interactables += node
@@ -169,11 +156,9 @@ class LabDragActivity : AppCompatActivity() {
     }
 
     private fun deleteAllModels() {
-        // Duyệt và xóa khỏi SceneView
         for (node in interactables.toList()) {
             sceneView.removeChildNode(node)
         }
-        // Clear danh sách quản lý
         interactables.clear()
         displayNames.clear()
         localAabbCache.clear()
@@ -228,10 +213,7 @@ class LabDragActivity : AppCompatActivity() {
         tableNode = ModelNode(modelInstance = sceneView.modelLoader.createModelInstance("models/Table.glb"), scaleToUnits = 3f)
         sceneView.addChildNode(tableNode!!)
 
-        tableTopY = 0f
         populateModelTray()
-
-        activeNode = ammeterNode
 
         // Camera nhìn xuống bàn
         updateCamera()
@@ -318,7 +300,6 @@ class LabDragActivity : AppCompatActivity() {
         )
 
         sceneView.setOnTouchListener { _, ev ->
-            // luôn chuyển qua detector trước
             scaleDetector.onTouchEvent(ev)
 
             when (ev.actionMasked) {
@@ -330,27 +311,22 @@ class LabDragActivity : AppCompatActivity() {
 
                     val picked = pickInteractable(ev.x, ev.y)
                     if (picked != null) {
-                        // --- Bắt đầu DRAG_MODEL với cơ sở U,V cố định ---
                         activeNode = picked
                         gesture = Gesture.DRAG_MODEL
                         showDetails(picked)
 
-                        // Giao điểm tia @DOWN với mặt bàn
                         val (ro0, rd0) = screenRayForDrag(ev.x, ev.y) ?: return@setOnTouchListener true
                         val h0 = intersectRayWithPlane(ro0, rd0, Position(0f, tableTopY, 0f), Direction(y = 1f))
                             ?: return@setOnTouchListener true
 
-                        // 1px theo X màn hình
                         val (roX, rdX) = screenRayForDrag(ev.x + 1f, ev.y) ?: return@setOnTouchListener true
                         val hX = intersectRayWithPlane(roX, rdX, Position(0f, tableTopY, 0f), Direction(y = 1f)) ?: h0
                         basisU = floatArrayOf(hX.x - h0.x, hX.y - h0.y, hX.z - h0.z)
 
-                        // 1px theo Y màn hình
                         val (roY, rdY) = screenRayForDrag(ev.x, ev.y + 1f) ?: return@setOnTouchListener true
                         val hY = intersectRayWithPlane(roY, rdY, Position(0f, tableTopY, 0f), Direction(y = 1f)) ?: h0
                         basisV = floatArrayOf(hY.x - h0.x, hY.y - h0.y, hY.z - h0.z)
 
-                        // Offset để model không "nhảy"
                         hit0 = h0
                         dragAnchor = h0
                         nodeOffset = Position(
@@ -359,7 +335,6 @@ class LabDragActivity : AppCompatActivity() {
                             picked.position.z - h0.z
                         )
                     } else {
-                        // Không trúng model → pan nền
                         activeNode = null
                         gesture = Gesture.PAN_BG
                         hideDetails()
@@ -368,7 +343,6 @@ class LabDragActivity : AppCompatActivity() {
                 }
 
                 MotionEvent.ACTION_MOVE -> {
-                    // Bỏ frame MOVE đầu sau pinch để tránh "giật"
                     if (suppressNextMove) {
                         lastX = ev.x; lastY = ev.y
                         suppressNextMove = false
@@ -411,7 +385,6 @@ class LabDragActivity : AppCompatActivity() {
                             val hCY = intersectRayWithPlane(roCY, rdCY, Position(0f, tableTopY, 0f), Direction(y = 1f)) ?: hC
                             val vNow = floatArrayOf(hCY.x - hC.x, hCY.y - hC.y, hCY.z - hC.z)
 
-                            // Cập nhật neo theo delta px hiện tại (tích lũy)
                             val newAnchor = mulAdd(anchor, uNow, dx, vNow, dy)
                             dragAnchor = newAnchor
 
@@ -429,11 +402,9 @@ class LabDragActivity : AppCompatActivity() {
                 }
 
                 MotionEvent.ACTION_POINTER_DOWN -> {
-                    // Khi thành 2 ngón: nếu đang kéo model → chuyển sang pan/zoom nền
                     if (gesture == Gesture.DRAG_MODEL) {
                         gesture = Gesture.PAN_BG
                     }
-                    // Đồng bộ lastX/Y theo tâm đa ngón để pan mượt
                     lastX = (0 until ev.pointerCount).sumOf { ev.getX(it).toDouble() }.toFloat() / ev.pointerCount
                     lastY = (0 until ev.pointerCount).sumOf { ev.getY(it).toDouble() }.toFloat() / ev.pointerCount
                     suppressNextMove = true
@@ -498,8 +469,7 @@ class LabDragActivity : AppCompatActivity() {
             (fwd[2] + sx * right[2] + sy * camUp[2])
         )
 
-        // Nếu gần song song mặt phẳng bàn → đẩy nhẹ xuống để đảm bảo cắt y=tableTopY
-        val rdY = if (kotlin.math.abs(d[1]) < 1e-4f) (if (d[1] >= 0f) -1e-4f else -d[1]) else d[1]
+        val rdY = if (abs(d[1]) < 1e-4f) (if (d[1] >= 0f) -1e-4f else -d[1]) else d[1]
 
         val eye = sceneView.cameraNode.position
         return Position(eye.x, eye.y, eye.z) to Direction(d[0], rdY, d[2])
@@ -519,7 +489,6 @@ class LabDragActivity : AppCompatActivity() {
         centerX -= dX
         centerZ += dZ
 
-        // Giới hạn trong khung
         clampCenterXZ()
 
         updateCamera()
@@ -559,7 +528,7 @@ class LabDragActivity : AppCompatActivity() {
         floatArrayOf(ay*bz - az*by, az*bx - ax*bz, ax*by - ay*bx)
 
     private fun norm(x: Float, y: Float, z: Float): FloatArray {
-        val l = kotlin.math.sqrt((x*x + y*y + z*z).toDouble()).toFloat().coerceAtLeast(1e-6f)
+        val l = sqrt((x*x + y*y + z*z).toDouble()).toFloat().coerceAtLeast(1e-6f)
         return floatArrayOf(x/l, y/l, z/l)
     }
 
@@ -568,7 +537,7 @@ class LabDragActivity : AppCompatActivity() {
         planePoint: Position, planeNormal: Direction
     ): Position? {
         val denom = planeNormal.x*rd.x + planeNormal.y*rd.y + planeNormal.z*rd.z
-        if (kotlin.math.abs(denom) < 1e-6f) return null
+        if (abs(denom) < 1e-6f) return null
         val diff = Position(
             planePoint.x - ro.x,
             planePoint.y - ro.y,
@@ -587,7 +556,6 @@ class LabDragActivity : AppCompatActivity() {
         return minW to maxW
     }
 
-    // Ray–AABB: trả t gần nhất nếu giao cắt, null nếu không
     private fun rayAabbT(ro: Position, rd: Direction, mn: Position, mx: Position): Float? {
         var tmin = (if (rd.x >= 0) (mn.x - ro.x)/rd.x else (mx.x - ro.x)/rd.x)
         var tmax = (if (rd.x >= 0) (mx.x - ro.x)/rd.x else (mn.x - ro.x)/rd.x)
@@ -602,9 +570,7 @@ class LabDragActivity : AppCompatActivity() {
         return if (tmax < 0f) null else if (tmin >= 0f) tmin else tmax
     }
 
-    // Bán kính pick fallback (tuỳ chỉnh theo scale/model)
     private fun approxPickRadius(node: ModelNode): Float {
-        // Tạm thời dùng giá trị “dễ trúng”: 12cm
         return 0.12f
     }
 
@@ -614,7 +580,7 @@ class LabDragActivity : AppCompatActivity() {
         val c2 = ox*ox + oy*oy + oz*oz - r*r
         val disc = b*b - c2
         if (disc < 0f) return null
-        val sqrtD = kotlin.math.sqrt(disc.toDouble()).toFloat()
+        val sqrtD = sqrt(disc.toDouble()).toFloat()
         val t1 = -b - sqrtD
         val t2 = -b + sqrtD
         return when {
@@ -624,7 +590,6 @@ class LabDragActivity : AppCompatActivity() {
         }
     }
 
-    // Pick model gần nhất theo tia từ (x,y)
     private fun pickInteractable(x: Float, y: Float): ModelNode? {
         val ray = screenRayForDrag(x, y) ?: return null
         val (ro, rd) = ray

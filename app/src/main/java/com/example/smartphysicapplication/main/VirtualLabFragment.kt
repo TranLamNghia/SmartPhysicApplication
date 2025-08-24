@@ -62,7 +62,7 @@ class VirtualLabFragment : Fragment() {
                 startActivity(intent)
             }
             is LabItem.Existing -> {
-                val intent = Intent(requireContext(), ModelViewerNativeActivity::class.java)
+                val intent = Intent(requireContext(), LabCustomActivity::class.java)
                 startActivity(intent)
             }
         }

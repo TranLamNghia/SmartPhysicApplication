@@ -34,7 +34,7 @@
             android:screenOrientation="portrait">
         </activity>
         <activity
-            android:name=".main.ModelViewerNativeActivity"
+            android:name=".main.LabCustomActivity"
             android:screenOrientation="landscape">
         </activity>
         <activity
