@@ -18,12 +18,32 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.smartphysicapplication.R
 import com.example.smartphysicapplication.adapter.LabAdapter
 import com.example.smartphysicapplication.adapter.LabItem
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.button.MaterialButtonToggleGroup
 
 class VirtualLabFragment : Fragment() {
     private lateinit var btnBack: ImageView
-
     private lateinit var rv: RecyclerView
     private val adapter = LabAdapter { item -> onLabClick(item) }
+
+    private lateinit var scopeToggle: MaterialButtonToggleGroup
+    private lateinit var btnMine: MaterialButton
+    private lateinit var btnCommunity: MaterialButton
+
+    private enum class Scope { MINE, COMMUNITY }
+    private var scope: Scope = Scope.MINE
+
+    // dữ liệu mẫu; phần này bạn thay bằng load DB/API thật
+    private val personalLabs = mutableListOf(
+        LabItem.New,
+        LabItem.Custom,
+        LabItem.Existing(id = "a1", name = "Thí nghiệm A", imageUri = null),
+        LabItem.Existing(id = "b2", name = "Thí nghiệm B", imageUri = null)
+    )
+    private val communityLabs = mutableListOf(
+        LabItem.Existing(id = "c1", name = "Con lắc đơn (public)", imageUri = null),
+        LabItem.Existing(id = "c2", name = "Mạch RC (public)", imageUri = null)
+    )
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_virtual_lab, container, false)
@@ -33,26 +53,33 @@ class VirtualLabFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         rv = view.findViewById(R.id.rvLabs)
+        rv.layoutManager = GridLayoutManager(requireContext(), 2)
+        rv.adapter = adapter
 
         btnBack = view.findViewById(R.id.btn_back)
         btnBack.setOnClickListener { parentFragmentManager.popBackStack() }
 
-        val span = 2
-        rv.layoutManager = GridLayoutManager(requireContext(), span)
-        rv.adapter = adapter
+        scopeToggle = view.findViewById(R.id.scopeToggle)
+        btnMine = view.findViewById(R.id.btnMine)
+        btnCommunity = view.findViewById(R.id.btnCommunity)
 
-        val data = mutableListOf(
-            LabItem.New, // ô “+”
-            LabItem.Existing(id="a1", name="Thí nghiệm A", imageUri=null),
-            LabItem.Existing(id="b2", name="Thí nghiệm B", imageUri=null)
-        )
-        adapter.submitList(data)
+        scopeToggle.check(btnMine.id)
+        reloadLabs()
 
-        // nút Bản sao
-        view.findViewById<Button>(R.id.btnClone).setOnClickListener {
-            showPasteLinkDialog()
+        scopeToggle.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            scope = if (checkedId == btnMine.id) Scope.MINE else Scope.COMMUNITY
+            reloadLabs()
         }
 
+    }
+
+    private fun reloadLabs() {
+        val list = when (scope) {
+            Scope.MINE -> personalLabs
+            Scope.COMMUNITY -> communityLabs
+        }
+        adapter.submitList(list.toList())
     }
 
     private fun onLabClick(item: LabItem) {
@@ -61,9 +88,23 @@ class VirtualLabFragment : Fragment() {
                 val intent = Intent(requireContext(), LabDragActivity::class.java)
                 startActivity(intent)
             }
+            LabItem.Custom -> {
+                showPasteLinkDialog()
+            }
             is LabItem.Existing -> {
-                val intent = Intent(requireContext(), LabCustomActivity::class.java)
-                startActivity(intent)
+                if (scope == Scope.COMMUNITY) {
+                    // mở màn cộng đồng
+                    val intent = Intent(requireContext(), LabPublicActivity::class.java)
+                    // tuỳ chọn: truyền thêm id hoặc name
+                    intent.putExtra("public_id", item.id)
+                    intent.putExtra("public_name", item.name)
+                    startActivity(intent)
+                } else {
+                    // thí nghiệm cá nhân
+                    val intent = Intent(requireContext(), LabCustomActivity::class.java)
+                    intent.putExtra("lab_id", item.id)
+                    startActivity(intent)
+                }
             }
         }
     }

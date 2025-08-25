@@ -14,7 +14,6 @@ import io.github.sceneview.SceneView
 import io.github.sceneview.math.Direction
 import io.github.sceneview.math.Position
 import io.github.sceneview.math.Scale
-import io.github.sceneview.node.LightNode
 import io.github.sceneview.node.ModelNode
 import io.github.sceneview.node.Node
 import io.github.sceneview.node.RenderableNode
@@ -86,22 +85,33 @@ class LabCustomActivity : AppCompatActivity() {
             finish()
         }
 
-//        sceneView.mainLightNode = LightNode(
-//            sceneView.engine, sceneView.engine.entityManager.create()
-//        ).apply { intensity = 80_000f }
+        findViewById<Button>(R.id.btnRefresh).setOnClickListener {
+            for ((_, node) in partNodes) {
+                try {
+                    node.isVisible = false
+                } catch (_: Throwable) {
+                    when (node) {
+                        is RenderableNode -> node.scale = Scale(0f)
+                        is ModelNode -> node.scale = Scale(0f)
+                    }
+                }
+            }
 
+            // Reset index về ban đầu
+            currentStepIndex = 0
+            pendingStepIndex = null
+
+            // Cập nhật lại tray
+            populateModelTray()
+
+            // Ẩn panel chi tiết nếu đang mở
+            hideDetails()
+        }
 
         panelDetails = findViewById(R.id.panelDetails)
         tvItemName = findViewById(R.id.item_name)
         btnShow = findViewById(R.id.btnShow)
         btnHide = findViewById(R.id.btnHide)
-
-//        loadGlb("models/Untitled.glb")
-//        setNodeScale(cubeName, 1.0f)
-//        setNodeScale(jetName,  1.0f)
-//        setupEnvironment()
-//        enablePicking()
-//        enableObliqueControls()
 
         tableNode = ModelNode(modelInstance = sceneView.modelLoader.createModelInstance("models/Table.glb"), scaleToUnits = 3f)
         sceneView.addChildNode(tableNode!!)

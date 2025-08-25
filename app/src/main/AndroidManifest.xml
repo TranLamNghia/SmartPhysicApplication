@@ -41,6 +41,10 @@
             android:name=".main.LabDragActivity"
             android:screenOrientation="landscape">
         </activity>
+        <activity
+            android:name=".main.LabPublicActivity"
+            android:screenOrientation="landscape">
+        </activity>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET"/>

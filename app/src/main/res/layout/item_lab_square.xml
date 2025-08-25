@@ -17,12 +17,11 @@
 
         <ImageView
             android:id="@+id/imgCenter"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:src="@drawable/ic_add_large"
             android:scaleType="centerInside"
-            android:background="@drawable/ic_add_large"
-            android:padding="12dp"
+            android:padding="5dp"
             android:contentDescription="Lab icon" />
 
         <TextView

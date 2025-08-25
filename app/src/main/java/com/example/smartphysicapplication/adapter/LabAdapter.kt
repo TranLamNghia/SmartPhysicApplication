@@ -14,6 +14,7 @@ import com.example.smartphysicapplication.R
 // Model + Adapter
 sealed class LabItem {
     data object New : LabItem()
+    data object Custom : LabItem()
     data class Existing(val id: String, val name: String, val imageUri: Uri?) : LabItem()
 }
 
@@ -22,7 +23,8 @@ class LabAdapter(
 ) : ListAdapter<LabItem, LabVH>(object : DiffUtil.ItemCallback<LabItem>() {
     override fun areItemsTheSame(o: LabItem, n: LabItem) =
         (o is LabItem.New && n is LabItem.New) ||
-                (o is LabItem.Existing && n is LabItem.Existing && o.id == n.id)
+                (o is LabItem.Custom && n is LabItem.Custom) ||
+                    (o is LabItem.Existing && n is LabItem.Existing && o.id == n.id)
 
     override fun areContentsTheSame(o: LabItem, n: LabItem) = o == n
 }) {
@@ -49,11 +51,29 @@ class LabVH(
             LabItem.New -> {
                 img.setImageResource(R.drawable.ic_add_large)
                 title.text = "Thí nghiệm mới"
+                val density = img.context.resources.displayMetrics.density
+                img.layoutParams.width = (60 * density).toInt()
+                img.layoutParams.height = (60 * density).toInt()
+            }
+            LabItem.Custom -> {
+                img.setImageResource(R.drawable.ic_link)
+                title.text = "Bản sao thí nghiệm"
+                val density = img.context.resources.displayMetrics.density
+                img.layoutParams.width = (60 * density).toInt()
+                img.layoutParams.height = (60 * density).toInt()
             }
             is LabItem.Existing -> {
                 if (item.imageUri != null) img.setImageURI(item.imageUri)
                 else img.setImageResource(R.drawable.img_mindmap_c2)
                 title.text = item.name
+
+                img.post {
+                    val parent = img.parent as View
+                    val density = img.context.resources.displayMetrics.density
+                    img.layoutParams.width = (parent.width * 0.9f).toInt()
+                    img.layoutParams.height = (100 * density).toInt()
+                    img.requestLayout()
+                }
             }
         }
         itemView.setOnClickListener { onClick(item) }
