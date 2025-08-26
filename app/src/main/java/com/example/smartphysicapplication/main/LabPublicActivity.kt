@@ -206,7 +206,7 @@ class LabPublicActivity : AppCompatActivity() {
 
         setupActiveNodeDrag()
     }
-    
+
     private fun setupEnvironment() {
         sceneView.environment = sceneView.environmentLoader
             .createHDREnvironment("environments/studio.hdr")!!
@@ -244,9 +244,7 @@ class LabPublicActivity : AppCompatActivity() {
 
     private fun spawnPresetModels() {
         val presets = listOf(
-            Preset("models/Ammeter.glb", "Ammeter", 0.15f, -0.30f,  0.10f,  15f),
-            Preset("models/Jet.glb",     "Jet",     0.15f,  0.25f, -0.05f, -30f),
-            Preset("models/Robot.glb",   "Robot",   0.15f,  0.00f,  0.35f,   0f)
+            Preset("models/Ammeter.glb", "Ammeter", 0.15f, -0.30f,  0.10f,  15f)
         )
         presets.forEach { p ->
             addModelAt(p.assetPath, p.name, p.units, p.x, p.z, p.rotYDeg)

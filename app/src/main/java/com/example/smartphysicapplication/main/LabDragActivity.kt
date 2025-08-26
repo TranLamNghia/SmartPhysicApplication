@@ -228,9 +228,11 @@ class LabDragActivity : AppCompatActivity() {
         tray.removeAllViews()
 
         val items = listOf(
-            ModelChip("ammeter", "Ammeter", R.drawable.ic_cube),
-            ModelChip("jet", "Jet", R.drawable.ic_sphere),
-            ModelChip("robot", "Robot", R.drawable.ic_cylinder),
+            ModelChip("ammeter", "Ampe kế", R.drawable.img_ammeter),
+            ModelChip("battery", "Pin", R.drawable.img_battery),
+            ModelChip("switch", "Công tắc điện", R.drawable.img_switch),
+            ModelChip("lamp", "Bóng đèn", R.drawable.img_lamp),
+            ModelChip("rheostat", "Biến trở", R.drawable.img_rheostat),
             // thêm…
         )
 
@@ -250,9 +252,11 @@ class LabDragActivity : AppCompatActivity() {
 
     private fun addModelFromChip(m: ModelChip) {
         when (m.id) {
-            "ammeter" -> addModel("models/Ammeter.glb", name = "Ammeter", units = 0.15f)
-            "jet" -> addModel("models/Jet.glb", name = "Jet", units = 0.15f)
-            "robot" -> addModel("models/Robot.glb", name = "Robot", units = 0.15f)
+            "ammeter" -> addModel("models/Ammeter.glb", name = m.name, units = 0.15f)
+            "battery" -> addModel("models/Battery.glb", name = m.name, units = 0.15f)
+            "switch" -> addModel("models/Switch.glb", name = m.name, units = 0.15f)
+            "lamp" -> addModel("models/Lamp.glb", name = m.name, units = 0.15f)
+            "rheostat" -> addModel("models/Rheostat.glb", name = m.name, units = 0.15f)
             else -> return
         }
     }
