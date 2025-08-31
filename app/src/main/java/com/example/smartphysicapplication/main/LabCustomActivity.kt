@@ -16,6 +16,7 @@ import io.github.sceneview.math.Position
 import io.github.sceneview.math.Scale
 import io.github.sceneview.node.ModelNode
 import io.github.sceneview.node.Node
+import io.github.sceneview.node.LightNode
 import io.github.sceneview.node.RenderableNode
 import kotlin.math.*
 
@@ -62,15 +63,16 @@ class LabCustomActivity : AppCompatActivity() {
     private lateinit var tvItemName: TextView
     private lateinit var btnShow: AppCompatButton
     private lateinit var btnHide: AppCompatButton
+    private lateinit var tvLabName: TextView
 
     private fun nodeName(n: Node?): String? = n?.name
 
+    private val lightNodes = mutableMapOf<String, LightNode>()
+    private val lightOriginal = mutableMapOf<String, Float>()
+
     data class ModelStep(val id: String, val name: String, val iconRes: Int, val nodeKey: String)
 
-    private val steps = listOf(
-        ModelStep("cube",  "Cube",  R.drawable.ic_cube,  "Cube"),
-        ModelStep("jet",  "Jet",  R.drawable.ic_cylinder,     "Jet")
-    )
+    private var steps: List<ModelStep> = emptyList()
     private var currentStepIndex = 0
     private var pendingStepIndex: Int? = null
 
@@ -80,6 +82,11 @@ class LabCustomActivity : AppCompatActivity() {
 
         sceneView = findViewById(R.id.sceneView)
         enablePicking()
+
+        val labId = intent.getStringExtra("lab_id") ?: "a1"
+        val assetPath = assetForLab(labId)
+
+        loadExperimentGlb(assetPath)
 
         findViewById<ImageView>(R.id.btnBack).setOnClickListener {
             finish()
@@ -100,11 +107,8 @@ class LabCustomActivity : AppCompatActivity() {
             // Reset index về ban đầu
             currentStepIndex = 0
             pendingStepIndex = null
-
-            // Cập nhật lại tray
+            steps = buildStepsFor(labId)
             populateModelTray()
-
-            // Ẩn panel chi tiết nếu đang mở
             hideDetails()
         }
 
@@ -112,16 +116,74 @@ class LabCustomActivity : AppCompatActivity() {
         tvItemName = findViewById(R.id.item_name)
         btnShow = findViewById(R.id.btnShow)
         btnHide = findViewById(R.id.btnHide)
-
+        tvLabName = findViewById(R.id.nameLab)
         tableNode = ModelNode(modelInstance = sceneView.modelLoader.createModelInstance("models/Table.glb"), scaleToUnits = 3f)
         sceneView.addChildNode(tableNode!!)
 
-        loadExperimentGlb("models/Untitled.glb")
+        if (labId == "a1") tvLabName.text = "Thí nghiệm lắp mạch bóng đèn" else tvLabName.text = "Thí nghiệm sơ đồ mạch điện với 2 bóng đèn có rơ le"
+
+        findViewById<Button>(R.id.btnSequence).setOnClickListener {
+            if (labId == "a1") {
+                val sequence = listOf(
+                    "Pin → Công tắc",
+                    "Công tắc → Ampe kế",
+                    "Ampe kế → Bóng đèn",
+                    "Bóng đèn → về cực âm của pin",
+                    "Nối vôn kế song song với bóng đèn",
+                    "Bật khóa K"
+                )
+                OrderDialog.newInstance(sequence).show(supportFragmentManager, "assembly_order")
+            } else {
+                val sequence = listOf(
+                    "Pin chính → Chân 30 rơ-le",
+                    "Chân 87 rơ-le → Bóng đèn 1",
+                    "Bóng đèn 1  → Bóng đèn 2",
+                    "Bóng đèn 2  → Pin chính",
+                    "Pin điều khiển → Khóa K",
+                    "Khóa K → Chân 86 rơ-le",
+                    "Chân 85 rơ-le → Pin điều khiển"
+                )
+                OrderDialog.newInstance(sequence).show(supportFragmentManager, "assembly_order")
+            }
+        }
+
         setupEnvironment()
+        steps = buildStepsFor(labId)
+        tuneFilamentQuality()
         currentStepIndex = 0
         populateModelTray()
         enableObliqueControls()
 
+    }
+
+    private fun buildStepsFor(id: String): List<ModelStep> = when (id.lowercase()) {
+        "a1" -> listOf(
+            ModelStep("battery",   "Pin",        R.drawable.img_battery,   "Battery"),
+            ModelStep("switch",    "Công tắc",   R.drawable.img_switch,    "Switch"),
+            ModelStep("ammeter",   "Ampe kế",    R.drawable.img_ammeter,   "Ammeter"),
+            ModelStep("lamp",      "Bóng đèn",   R.drawable.img_lamp,      "Lamp"),
+            ModelStep("voltmeter", "Vôn kế",     R.drawable.img_voltmeter, "Volt"),
+            ModelStep("wire",      "Dây ",       R.drawable.img_wire,      "Wire"),
+        )
+        "b2" -> listOf(
+            ModelStep("battery", "Pin",          R.drawable.img_battery,   "Battery"),
+            ModelStep("role",    "Rơ-le",        R.drawable.img_role,      "Role"),
+            ModelStep("lamp1",   "Bóng đèn 1",   R.drawable.img_lamp,      "Lamp"),
+            ModelStep("lamp2",   "Bóng đèn 2",   R.drawable.img_lamp,      "Lamp2"),
+            ModelStep("battery2","Pin",          R.drawable.img_battery,   "Battery2"),
+            ModelStep("switch",  "Công tắc",     R.drawable.img_switch,    "Switch"),
+            ModelStep("wire",    "Dây ",         R.drawable.img_wire,      "Wire")
+        )
+
+        else -> listOf(
+
+        )
+    }
+
+    private fun assetForLab(id: String): String = when (id.lowercase()) {
+        "a1" -> "models/Lab1.glb"
+        "b2" -> "models/Lab2.glb"
+        else -> "models/Lab1.glb"
     }
 
     private fun loadExperimentGlb(assetPath: String) {
@@ -137,13 +199,22 @@ class LabCustomActivity : AppCompatActivity() {
 
         fun collectChildren(n: Node) {
             n.childNodes.forEach { child ->
-                val key = child.name ?: return@forEach
-                partNodes[key] = child
-                try { child.isVisible = false } catch (_: Throwable) {
-                    // fallback: nếu không có isVisible, thu nhỏ để "ẩn"
-                    when (child) {
-                        is RenderableNode -> child.scale = Scale(0f)
-                        is ModelNode      -> child.scale = Scale(0f)
+                when (child) {
+                    is LightNode -> {
+                        val key = child.name ?: "Light#${child.entity}"
+                        lightNodes[key] = child
+                        if (key !in lightOriginal) lightOriginal[key] = child.intensity
+                        child.intensity = 0f
+                    }
+                    else -> {
+                        val key = child.name ?: return@forEach
+                        partNodes[key] = child
+                        try { child.isVisible = false } catch (_: Throwable) {
+                            when (child) {
+                                is RenderableNode -> child.scale = Scale(0f)
+                                is ModelNode -> child.scale = Scale(0f)
+                            }
+                        }
                     }
                 }
                 collectChildren(child)
@@ -151,6 +222,15 @@ class LabCustomActivity : AppCompatActivity() {
         }
         collectChildren(rootModel!!)
     }
+
+    private fun setLightEnabled(name: String, enabled: Boolean, fallback: Float = 12000f) {
+        val key = name.trim()
+        val ln = lightNodes[key] ?: return
+        val base0 = lightOriginal[key]
+        val base  = if (base0 != null && base0 > 0f) base0 else fallback
+        ln.intensity = if (enabled) base else 0f
+    }
+
 
     private fun populateModelTray() {
         val tray = findViewById<LinearLayout>(R.id.modelTray)
@@ -199,12 +279,9 @@ class LabCustomActivity : AppCompatActivity() {
         val idx = pendingStepIndex ?: return
         val step = steps[idx]
         setPartVisible(step.nodeKey, true)
-
         currentStepIndex = idx + 1
         pendingStepIndex = null
-
         populateModelTray()
-
         hideDetails()
     }
 
@@ -216,7 +293,6 @@ class LabCustomActivity : AppCompatActivity() {
                 .start()
         }
     }
-
     
     private fun setPartVisible(nodeKey: String, visible: Boolean) {
         val node = partNodes[nodeKey]
@@ -242,7 +318,7 @@ class LabCustomActivity : AppCompatActivity() {
     }
 
     private fun enableObliqueControls(
-        minRadius: Float = 0.3f,
+        minRadius: Float = 1.5f,
         maxRadius: Float = 2f
     ) {
         sceneView.cameraManipulator = null
@@ -454,5 +530,66 @@ class LabCustomActivity : AppCompatActivity() {
             Log.w(TAG, "Cannot enable picking (no API found)")
         }
     }
+
+    private fun tuneFilamentQuality() {
+        try {
+            // Lấy Filament View
+            val getView = sceneView::class.java.methods.first { it.name == "getView" && it.parameterTypes.isEmpty() }
+            val filamentView = getView.invoke(sceneView) ?: return
+
+            // ==== 1. Tắt các hiệu ứng nặng: SSAO, Bloom, Vignette/SSR nếu có ====
+            runCatching {
+                val aoEnum = filamentView.javaClass.getMethod("setAmbientOcclusion", Class.forName("com.google.android.filament.View\$AmbientOcclusion"))
+                val aoNone = Class.forName("com.google.android.filament.View\$AmbientOcclusion")
+                    .enumConstants.first { (it as Enum<*>).name == "NONE" }
+                aoEnum.invoke(filamentView, aoNone)
+            }
+
+            runCatching {
+                val bloomOptions = Class.forName("com.google.android.filament.BloomOptions").newInstance()
+                val enabledField = bloomOptions.javaClass.getField("enabled")
+                enabledField.setBoolean(bloomOptions, false)
+                filamentView.javaClass.getMethod("setBloomOptions", bloomOptions.javaClass).invoke(filamentView, bloomOptions)
+            }
+
+            // ==== 2. Anti-Aliasing rẻ: dùng FXAA, giảm MSAA ====
+            runCatching {
+                val aaEnumSetter = filamentView.javaClass.getMethod("setAntiAliasing", Class.forName("com.google.android.filament.View\$AntiAliasing"))
+                val aaFXAA = Class.forName("com.google.android.filament.View\$AntiAliasing")
+                    .enumConstants.first { (it as Enum<*>).name == "FXAA" }
+                aaEnumSetter.invoke(filamentView, aaFXAA)
+            }
+            runCatching {
+                // multisampling = 1 hoặc 2 là đủ
+                filamentView.javaClass.getMethod("setMultiSampleAntiAliasing", Int::class.javaPrimitiveType)
+                    .invoke(filamentView, 1)
+            }
+
+            // ==== 3. Bật Dynamic Resolution để giữ 60fps khi máy yếu ====
+            runCatching {
+                val dynCls = Class.forName("com.google.android.filament.DynamicResolutionOptions")
+                val dyn = dynCls.getDeclaredConstructor().newInstance()
+                dynCls.getField("enabled").setBoolean(dyn, true)
+                dynCls.getField("homogeneousScaling").setBoolean(dyn, true)
+                // Mục tiêu ~16.6ms/khung (≈60fps)
+                dynCls.getField("targetFrameTimeMillis").setFloat(dyn, 16.6f)
+                filamentView.javaClass.getMethod("setDynamicResolutionOptions", dynCls).invoke(filamentView, dyn)
+            }
+
+            // ==== 4. Hạ bóng đổ: nhỏ mapSize, giảm cascade, tắt contact shadow ====
+            runCatching {
+                val shadowCls = Class.forName("com.google.android.filament.ShadowOptions")
+                val sh = shadowCls.getDeclaredConstructor().newInstance()
+                shadowCls.getField("mapSize").setInt(sh, 1024)          // 512–1024
+                shadowCls.getField("maxShadowDistance").setFloat(sh, 5f)
+                shadowCls.getField("vsmMsaaSamples").setInt(sh, 1)
+                shadowCls.getField("screenSpaceContactShadows").setBoolean(sh, false)
+                filamentView.javaClass.getMethod("setShadowOptions", shadowCls).invoke(filamentView, sh)
+            }
+        } catch (_: Throwable) {
+            // Không sao, tùy phiên bản thư viện – làm được gì thì làm bấy nhiêu
+        }
+    }
+
 
 }

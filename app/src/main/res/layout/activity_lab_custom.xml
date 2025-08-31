@@ -37,6 +37,7 @@
                 app:tint="@color/green_600" />
 
             <TextView
+                android:id="@+id/nameLab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
@@ -49,6 +50,18 @@
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnSequence"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="5dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/button_outlined"
+                android:drawableStart="@drawable/ic_sequence"
+                android:text="Trình tự"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/text_answer" />
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnShare"

@@ -15,7 +15,7 @@ import com.example.smartphysicapplication.R
 sealed class LabItem {
     data object New : LabItem()
     data object Custom : LabItem()
-    data class Existing(val id: String, val name: String, val imageUri: Uri?) : LabItem()
+    data class Existing(val id: String, val name: String, val imageRes: Int?) : LabItem()
 }
 
 class LabAdapter(
@@ -63,7 +63,7 @@ class LabVH(
                 img.layoutParams.height = (60 * density).toInt()
             }
             is LabItem.Existing -> {
-                if (item.imageUri != null) img.setImageURI(item.imageUri)
+                if (item.imageRes != null) img.setImageResource(item.imageRes)
                 else img.setImageResource(R.drawable.img_mindmap_c2)
                 title.text = item.name
 

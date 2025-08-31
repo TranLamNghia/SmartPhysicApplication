@@ -16,3 +16,4 @@ local.properties
 *.log
 .gradle.properties
 /app/release/
+/app/src/main/assets/

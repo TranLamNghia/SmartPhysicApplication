@@ -37,12 +37,12 @@ class VirtualLabFragment : Fragment() {
     private val personalLabs = mutableListOf(
         LabItem.New,
         LabItem.Custom,
-        LabItem.Existing(id = "a1", name = "Thí nghiệm A", imageUri = null),
-        LabItem.Existing(id = "b2", name = "Thí nghiệm B", imageUri = null)
+        LabItem.Existing(id = "a1", name = "Lắp mạch bóng đèn", imageRes = R.drawable.img_lab1),
+        LabItem.Existing(id = "b2", name = "Mạch điện với 2 bóng đèn có rơ le", imageRes = R.drawable.img_lab2)
     )
     private val communityLabs = mutableListOf(
-        LabItem.Existing(id = "c1", name = "Con lắc đơn (public)", imageUri = null),
-        LabItem.Existing(id = "c2", name = "Mạch RC (public)", imageUri = null)
+        LabItem.Existing(id = "c1", name = "Con lắc đơn (public)", imageRes = null),
+        LabItem.Existing(id = "c2", name = "Mạch RC (public)", imageRes = null)
     )
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

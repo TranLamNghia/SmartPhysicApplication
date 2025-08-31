@@ -210,7 +210,7 @@ class LabDragActivity : AppCompatActivity() {
 
         setupEnvironment()
 
-        tableNode = ModelNode(modelInstance = sceneView.modelLoader.createModelInstance("models/Table.glb"), scaleToUnits = 3f)
+        tableNode = ModelNode(modelInstance = sceneView.modelLoader.createModelInstance("models/TableLight.glb"), scaleToUnits = 3f)
         sceneView.addChildNode(tableNode!!)
 
         populateModelTray()
@@ -233,6 +233,12 @@ class LabDragActivity : AppCompatActivity() {
             ModelChip("switch", "Công tắc điện", R.drawable.img_switch),
             ModelChip("lamp", "Bóng đèn", R.drawable.img_lamp),
             ModelChip("rheostat", "Biến trở", R.drawable.img_rheostat),
+            ModelChip("voltmeter", "Vôn kế", R.drawable.img_voltmeter),
+            ModelChip("role", "Rơ le", R.drawable.img_role),
+            ModelChip("buttonswitch", "Công tắc nhấn", R.drawable.img_buttonswitch),
+            ModelChip("capacitor", "Tụ điện", R.drawable.img_capacitor),
+            ModelChip("experimental", "Máy biến áp", R.drawable.img_experimental),
+            ModelChip("knifeswitch", "Cầu dao", R.drawable.img_knifeswitch)
             // thêm…
         )
 
@@ -257,6 +263,12 @@ class LabDragActivity : AppCompatActivity() {
             "switch" -> addModel("models/Switch.glb", name = m.name, units = 0.15f)
             "lamp" -> addModel("models/Lamp.glb", name = m.name, units = 0.15f)
             "rheostat" -> addModel("models/Rheostat.glb", name = m.name, units = 0.15f)
+            "voltmeter" -> addModel("models/Voltmeter.glb", name = m.name, units = 0.15f)
+            "role" -> addModel("models/Role.glb", name = m.name, units = 0.15f)
+            "buttonswitch" -> addModel("models/ButtonSwitch.glb", name = m.name, units = 0.15f)
+            "capacitor" -> addModel("models/Capacitor.glb", name = m.name, units = 0.15f)
+            "experimental" -> addModel("models/Experimental.glb", name = m.name, units = 0.15f)
+            "knifeswitch" -> addModel("models/KnifeSwitch.glb", name = m.name, units = 0.15f)
             else -> return
         }
     }
@@ -279,7 +291,7 @@ class LabDragActivity : AppCompatActivity() {
     private fun setupEnvironment() {
         sceneView.environment = sceneView.environmentLoader
             .createHDREnvironment("environments/studio.hdr")!!
-        sceneView.environment?.indirectLight?.intensity = 20_000f
+        sceneView.environment?.indirectLight?.intensity = 80_000f
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -575,7 +587,7 @@ class LabDragActivity : AppCompatActivity() {
     }
 
     private fun approxPickRadius(node: ModelNode): Float {
-        return 0.12f
+        return 0.2f
     }
 
     private fun raySphereT(ro: Position, rd: Direction, c: Position, r: Float): Float? {
