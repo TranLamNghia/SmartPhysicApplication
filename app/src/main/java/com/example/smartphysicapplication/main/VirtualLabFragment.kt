@@ -94,11 +94,11 @@ class VirtualLabFragment : Fragment() {
             is LabItem.Existing -> {
                 if (scope == Scope.COMMUNITY) {
                     // mở màn cộng đồng
-                    val intent = Intent(requireContext(), LabPublicActivity::class.java)
-                    // tuỳ chọn: truyền thêm id hoặc name
-                    intent.putExtra("public_id", item.id)
-                    intent.putExtra("public_name", item.name)
-                    startActivity(intent)
+//                    val intent = Intent(requireContext(), LabPublicActivity::class.java)
+//                    // tuỳ chọn: truyền thêm id hoặc name
+//                    intent.putExtra("public_id", item.id)
+//                    intent.putExtra("public_name", item.name)
+//                    startActivity(intent)
                 } else {
                     // thí nghiệm cá nhân
                     val intent = Intent(requireContext(), LabCustomActivity::class.java)

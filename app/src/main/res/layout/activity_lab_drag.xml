@@ -9,6 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <!-- Scene chính -->
         <io.github.sceneview.SceneView
             android:id="@+id/sceneView"
             android:layout_width="0dp"
@@ -18,14 +19,15 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
+        <!-- Header bar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
+            android:background="@drawable/headersheet_background"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:background="@drawable/headersheet_background">
+            app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/btnBack"
@@ -33,7 +35,7 @@
                 android:layout_height="30dp"
                 android:layout_marginStart="20dp"
                 android:src="@drawable/ic_back"
-                app:tint="@color/green_600"/>
+                app:tint="@color/green_600" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -47,7 +49,7 @@
             <View
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:layout_weight="1"/>
+                android:layout_weight="1" />
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnShare"
@@ -59,7 +61,7 @@
                 android:text="Chia sẻ"
                 android:textSize="@dimen/text_answer"
                 android:drawableStart="@drawable/ic_share"
-                android:textColor="@android:color/white"/>
+                android:textColor="@android:color/white" />
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnDeleteAll"
@@ -71,10 +73,10 @@
                 android:text="Xoá tất cả"
                 android:textSize="@dimen/text_answer"
                 android:drawableStart="@drawable/ic_trash"
-                android:textColor="@android:color/white"/>
-
+                android:textColor="@android:color/white" />
         </LinearLayout>
 
+        <!-- Các guideline -->
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline75w"
             android:layout_width="wrap_content"
@@ -96,6 +98,7 @@
             android:orientation="horizontal"
             app:layout_constraintGuide_percent="0.75" />
 
+        <!-- Panel chi tiết -->
         <FrameLayout
             android:id="@+id/panelDetails"
             android:layout_width="0dp"
@@ -108,6 +111,7 @@
             app:layout_constraintTop_toTopOf="@id/guideline25h"
             app:layout_constraintBottom_toBottomOf="@id/guideline75h">
 
+            <!-- Nội dung chi tiết -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
@@ -117,9 +121,9 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:paddingBottom="12dp"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
+                    app:layout_constraintEnd_toEndOf="parent">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -128,7 +132,7 @@
                         android:text="Chi tiết dụng cụ"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="@color/white"/>
+                        android:textColor="@color/white" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -142,20 +146,18 @@
                             android:layout_height="wrap_content"
                             android:text="Tên dụng cụ: "
                             android:textStyle="bold"
-                            android:textColor="@color/white"/>
+                            android:textColor="@color/white" />
 
                         <TextView
                             android:id="@+id/item_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="2dp"
-                            android:textColor="@color/white"/>
-
+                            android:textColor="@color/white" />
                     </LinearLayout>
-
                 </LinearLayout>
 
-                <!-- Hàng nút Hoàn tất & Xoá -->
+                <!-- Nút Hoàn tất & Xoá -->
                 <LinearLayout
                     android:id="@+id/btnRow"
                     android:layout_width="0dp"
@@ -189,13 +191,11 @@
                         android:background="@drawable/button_outlined"
                         android:textColor="@android:color/white" />
                 </LinearLayout>
-
             </androidx.constraintlayout.widget.ConstraintLayout>
         </FrameLayout>
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Bottom sheet “bookmark” (cần Material lib cho Behavior) -->
+    <!-- BottomSheet bookmark -->
     <FrameLayout
         android:id="@+id/bottomSheet"
         android:layout_width="match_parent"
@@ -210,7 +210,7 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <!-- Bookmark handle -->
+            <!-- handle -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="28dp"
@@ -222,7 +222,7 @@
                     android:background="@drawable/handle_background" />
             </LinearLayout>
 
-            <!-- Dãy icon model ngang -->
+            <!-- model tray -->
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -235,11 +235,81 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                </LinearLayout>
+                    android:gravity="center_vertical" />
             </HorizontalScrollView>
         </LinearLayout>
     </FrameLayout>
 
+    <!-- Scrim overlay -->
+    <View
+        android:id="@+id/shareScrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:elevation="10dp"
+        android:visibility="gone" />
+
+    <!-- Share panel -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/sharePanel"
+        android:layout_width="500dp"
+        android:layout_height="120dp"
+        android:background="@color/white"
+        android:elevation="12dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:visibility="gone"
+        android:layout_gravity="bottom|center_horizontal">
+
+        <!-- nút X -->
+        <ImageView
+            android:id="@+id/btnCloseShare"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:padding="2dp"
+            android:src="@drawable/ic_close"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@android:color/black" />
+
+        <!-- hàng 2 nút -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="20dp"
+            android:gravity="bottom"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnShareLink"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:background="@drawable/button_filled"
+                android:drawableStart="@drawable/ic_link"
+                android:text="Chia sẻ bằng link"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white" />
+
+            <Space
+                android:layout_width="12dp"
+                android:layout_height="0dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnSharePublic"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:background="@drawable/button_outlined"
+                android:drawableStart="@drawable/ic_earth"
+                android:text="Chia sẻ công khai"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

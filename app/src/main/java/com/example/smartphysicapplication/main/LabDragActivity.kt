@@ -12,6 +12,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import com.example.smartphysicapplication.R
@@ -75,6 +76,10 @@ class LabDragActivity : AppCompatActivity() {
     private lateinit var tvItemName: TextView
     private lateinit var btnDone: AppCompatButton
     private lateinit var btnDelete: AppCompatButton
+
+    private lateinit var panelShare: View
+    private lateinit var scrimShare: View
+    private var shareShown = false
 
     private fun mulAdd(h: Position, u: FloatArray, du: Float, v: FloatArray, dv: Float): Position =
         Position(h.x + u[0]*du + v[0]*dv, h.y + u[1]*du + v[1]*dv, h.z + u[2]*du + v[2]*dv)
@@ -177,9 +182,41 @@ class LabDragActivity : AppCompatActivity() {
 
         sceneView = findViewById(R.id.sceneView)
         findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
-        findViewById<AppCompatButton>(R.id.btnShare).setOnClickListener {
-            Toast.makeText(this, "Đã sao chép đường dẫn chia sẻ \n vatlythongminh//TLN147", Toast.LENGTH_SHORT).show()
+
+        val btnShare = findViewById<View>(R.id.btnShare)
+        panelShare = findViewById(R.id.sharePanel)
+        scrimShare = findViewById(R.id.shareScrim)
+        val btnCloseShare = findViewById<View>(R.id.btnCloseShare)
+
+        // Đặt panel ẩn dưới màn hình
+        panelShare.post {
+            panelShare.translationY = panelShare.height.toFloat()
         }
+
+        btnShare.setOnClickListener { showShare(true) }
+        btnCloseShare.setOnClickListener { showShare(false) }
+        scrimShare.setOnClickListener { showShare(false) }
+
+        // Xử lý back
+        onBackPressedDispatcher.addCallback(this) {
+            if (shareShown) {
+                showShare(false)
+            } else {
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
+            }
+        }
+
+        // Xử lý 2 nút lớn
+        findViewById<View>(R.id.btnShareLink).setOnClickListener {
+            Toast.makeText(this, "Đã sao chép liên kết", Toast.LENGTH_SHORT).show()
+            showShare(false)
+        }
+        findViewById<View>(R.id.btnSharePublic).setOnClickListener {
+            Toast.makeText(this, "Đã chia sẻ tới cộng đồng", Toast.LENGTH_SHORT).show()
+            showShare(false)
+        }
+
         val btnDeleteAll = findViewById<AppCompatButton>(R.id.btnDeleteAll)
         btnDeleteAll.setOnClickListener {
             deleteAllModels()
@@ -219,6 +256,32 @@ class LabDragActivity : AppCompatActivity() {
         updateCamera()
 
         setupActiveNodeDrag()
+    }
+
+    private fun showShare(show: Boolean) {
+        if (show == shareShown) return
+        shareShown = show
+
+        if (show) {
+            panelShare.visibility = View.VISIBLE
+            scrimShare.visibility = View.VISIBLE
+            scrimShare.alpha = 0f
+            scrimShare.animate().alpha(1f).setDuration(180).start()
+            panelShare.animate()
+                .translationY(0f)
+                .setDuration(220)
+                .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
+                .start()
+        } else {
+            scrimShare.animate().alpha(0f).setDuration(160).withEndAction {
+                scrimShare.visibility = View.GONE
+            }.start()
+            panelShare.animate()
+                .translationY(panelShare.height.toFloat())
+                .setDuration(220)
+                .withEndAction { panelShare.visibility = View.GONE }
+                .start()
+        }
     }
 
     data class ModelChip(val id: String, val name: String, val iconRes: Int)

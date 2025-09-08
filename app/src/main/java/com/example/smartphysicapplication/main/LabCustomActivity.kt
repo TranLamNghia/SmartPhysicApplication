@@ -7,6 +7,8 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import com.example.smartphysicapplication.R
@@ -18,6 +20,7 @@ import io.github.sceneview.node.ModelNode
 import io.github.sceneview.node.Node
 import io.github.sceneview.node.LightNode
 import io.github.sceneview.node.RenderableNode
+import okhttp3.internal.format
 import kotlin.math.*
 
 private const val TAG = "CustomModel"
@@ -76,6 +79,10 @@ class LabCustomActivity : AppCompatActivity() {
     private var currentStepIndex = 0
     private var pendingStepIndex: Int? = null
 
+    private lateinit var panelShare: View
+    private lateinit var scrimShare: View
+    private var shareShown = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_lab_custom)
@@ -85,11 +92,54 @@ class LabCustomActivity : AppCompatActivity() {
 
         val labId = intent.getStringExtra("lab_id") ?: "a1"
         val assetPath = assetForLab(labId)
-
         loadExperimentGlb(assetPath)
+
+        lightNodes["Point1"]?.let { setLightChannel(it.entity, 0, true) }
+        lightNodes["Point2"]?.let { setLightChannel(it.entity, 1, true) }
+
+        partNodes["Lamp"]?.let { lamp ->
+            forEachRenderableEntity(lamp) { ent -> setRenderableChannel(ent, 0, true) }
+        }
+        partNodes["Lamp2"]?.let { lamp2 ->
+            forEachRenderableEntity(lamp2) { ent -> setRenderableChannel(ent, 1, true) }
+        }
 
         findViewById<ImageView>(R.id.btnBack).setOnClickListener {
             finish()
+        }
+
+        val btnShare = findViewById<View>(R.id.btnShare)
+        panelShare = findViewById(R.id.sharePanel)
+        scrimShare = findViewById(R.id.shareScrim)
+        val btnCloseShare = findViewById<View>(R.id.btnCloseShare)
+
+        // Đặt panel ẩn dưới màn hình
+        panelShare.post {
+            panelShare.translationY = panelShare.height.toFloat()
+        }
+
+        btnShare.setOnClickListener { showShare(true) }
+        btnCloseShare.setOnClickListener { showShare(false) }
+        scrimShare.setOnClickListener { showShare(false) }
+
+        // Xử lý back
+        onBackPressedDispatcher.addCallback(this) {
+            if (shareShown) {
+                showShare(false)
+            } else {
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
+            }
+        }
+
+        // Xử lý 2 nút lớn
+        findViewById<View>(R.id.btnShareLink).setOnClickListener {
+            Toast.makeText(this, "Đã sao chép liên kết", Toast.LENGTH_SHORT).show()
+            showShare(false)
+        }
+        findViewById<View>(R.id.btnSharePublic).setOnClickListener {
+            Toast.makeText(this, "Đã chia sẻ tới cộng đồng", Toast.LENGTH_SHORT).show()
+            showShare(false)
         }
 
         findViewById<Button>(R.id.btnRefresh).setOnClickListener {
@@ -108,6 +158,7 @@ class LabCustomActivity : AppCompatActivity() {
             currentStepIndex = 0
             pendingStepIndex = null
             steps = buildStepsFor(labId)
+            setLightEnabled("Point", false)
             populateModelTray()
             hideDetails()
         }
@@ -156,6 +207,32 @@ class LabCustomActivity : AppCompatActivity() {
 
     }
 
+    private fun showShare(show: Boolean) {
+        if (show == shareShown) return
+        shareShown = show
+
+        if (show) {
+            panelShare.visibility = View.VISIBLE
+            scrimShare.visibility = View.VISIBLE
+            scrimShare.alpha = 0f
+            scrimShare.animate().alpha(1f).setDuration(180).start()
+            panelShare.animate()
+                .translationY(0f)
+                .setDuration(220)
+                .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
+                .start()
+        } else {
+            scrimShare.animate().alpha(0f).setDuration(160).withEndAction {
+                scrimShare.visibility = View.GONE
+            }.start()
+            panelShare.animate()
+                .translationY(panelShare.height.toFloat())
+                .setDuration(220)
+                .withEndAction { panelShare.visibility = View.GONE }
+                .start()
+        }
+    }
+
     private fun buildStepsFor(id: String): List<ModelStep> = when (id.lowercase()) {
         "a1" -> listOf(
             ModelStep("battery",   "Pin",        R.drawable.img_battery,   "Battery"),
@@ -182,7 +259,7 @@ class LabCustomActivity : AppCompatActivity() {
 
     private fun assetForLab(id: String): String = when (id.lowercase()) {
         "a1" -> "models/Lab1.glb"
-        "b2" -> "models/Lab2.glb"
+        "b2" -> "models/Lab3.glb"
         else -> "models/Lab1.glb"
     }
 
@@ -224,13 +301,25 @@ class LabCustomActivity : AppCompatActivity() {
     }
 
     private fun setLightEnabled(name: String, enabled: Boolean, fallback: Float = 12000f) {
-        val key = name.trim()
-        val ln = lightNodes[key] ?: return
-        val base0 = lightOriginal[key]
-        val base  = if (base0 != null && base0 > 0f) base0 else fallback
-        ln.intensity = if (enabled) base else 0f
+        val ln = lightNodes[name] ?: run {
+            Log.w(TAG, "No light named $name")
+            return
+        }
+        val base = (lightOriginal[name] ?: ln.intensity).let { if (it > 0f) it else fallback }
+        ln.intensity = if (enabled) base * 1.5f else 0f
     }
 
+    private fun loadLightsGlb() {
+        val lightsModel = ModelNode(
+            modelInstance = sceneView.modelLoader.createModelInstance("models/Lights2.glb"),
+            autoAnimate = false,
+            scaleToUnits = 1.0f
+        )
+        sceneView.addChildNode(lightsModel)
+
+        // collect children như bạn đã làm để đưa vào lightNodes map
+        dumpTree(lightsModel)
+    }
 
     private fun populateModelTray() {
         val tray = findViewById<LinearLayout>(R.id.modelTray)
@@ -242,7 +331,6 @@ class LabCustomActivity : AppCompatActivity() {
             val img = v.findViewById<ImageView>(R.id.imgModel)
             val tv  = v.findViewById<TextView>(R.id.tvModel)
             val overlay = v.findViewById<View>(R.id.overlayLock)
-//            val icLock  = v.findViewById<ImageView?>(R.id.icLock)
 
             img.setImageResource(step.iconRes)
             tv.text = step.name
@@ -251,11 +339,9 @@ class LabCustomActivity : AppCompatActivity() {
             v.isEnabled = enabled
             v.isClickable = enabled
             overlay.visibility = if (enabled) View.GONE else View.VISIBLE
-//            icLock?.visibility = if (enabled) View.GONE else View.VISIBLE
             v.alpha = if (enabled) 1f else 0.6f
 
             v.setOnClickListener {
-                // chỉ có thể tới đây khi enabled = true
                 pendingStepIndex = index
                 tvItemName.text = step.name
                 showDetailsForStep(step)
@@ -279,6 +365,16 @@ class LabCustomActivity : AppCompatActivity() {
         val idx = pendingStepIndex ?: return
         val step = steps[idx]
         setPartVisible(step.nodeKey, true)
+        if (idx == steps.lastIndex - 1) {
+//            setLightEnabled("Point1", true)
+        }
+        if (idx == steps.lastIndex) {
+            setLightEnabled("Point1", true)
+//            setLightEnabled("Point2", true)
+//            loadLightsGlb()
+        }
+
+        sceneView.invalidate()
         currentStepIndex = idx + 1
         pendingStepIndex = null
         populateModelTray()
@@ -314,11 +410,11 @@ class LabCustomActivity : AppCompatActivity() {
     private fun setupEnvironment() {
         sceneView.environment = sceneView.environmentLoader
             .createHDREnvironment("environments/studio.hdr")!!
-        sceneView.environment?.indirectLight?.intensity = 20_000f
+        sceneView.environment?.indirectLight?.intensity = 10_000f
     }
 
     private fun enableObliqueControls(
-        minRadius: Float = 1.5f,
+        minRadius: Float = 1f,
         maxRadius: Float = 2f
     ) {
         sceneView.cameraManipulator = null
@@ -514,7 +610,6 @@ class LabCustomActivity : AppCompatActivity() {
         try {
             val m = sceneView::class.java.getMethod("setPickingEnabled", Boolean::class.javaPrimitiveType)
             m.invoke(sceneView, true)
-            Log.d(TAG, "Picking enabled via SceneView.setPickingEnabled(true)")
             return
         } catch (_: Throwable) {}
 
@@ -525,7 +620,6 @@ class LabCustomActivity : AppCompatActivity() {
             val setPick = filamentView?.javaClass?.methods
                 ?.firstOrNull { it.name == "setPickingEnabled" && it.parameterTypes.size == 1 }
             setPick?.invoke(filamentView, true)
-            Log.d(TAG, "Picking enabled via FilamentView.setPickingEnabled(true)")
         } catch (_: Throwable) {
             Log.w(TAG, "Cannot enable picking (no API found)")
         }
@@ -591,5 +685,63 @@ class LabCustomActivity : AppCompatActivity() {
         }
     }
 
+    // ===== Helpers (reflection sang Filament) =====
+    val Node.childrenRecursive: Sequence<Node>
+        get() = sequence {
+            for (c in childNodes) {
+                yield(c)
+                yieldAll(c.childrenRecursive)
+            }
+        }
+    private fun forEachRenderableEntity(node: Node, block: (Int) -> Unit) {
+        // chính entity của node:
+        if (node.entity != 0) block(node.entity)
+        // entity của mọi node con:
+        node.childrenRecursive.forEach { child ->
+            if (child.entity != 0) block(child.entity)
+        }
+    }
+
+    private fun setLightChannel(lightEntity: Int, channel: Int, enabled: Boolean) = runCatching {
+        val engine = sceneView::class.java.getMethod("getEngine").invoke(sceneView)
+        val lm = engine.javaClass.getMethod("getLightManager").invoke(engine)
+        val inst = lm.javaClass.getMethod("getInstance", Int::class.javaPrimitiveType).invoke(lm, lightEntity)
+        lm.javaClass.getMethod(
+            "setLightChannel",
+            Class.forName("com.google.android.filament.LightManager\$Instance"),
+            Int::class.javaPrimitiveType,
+            Boolean::class.javaPrimitiveType
+        ).invoke(lm, inst, channel, enabled)
+
+        // tắt cast shadow để giảm culling/budget
+        runCatching {
+            lm.javaClass.getMethod(
+                "setCastShadows",
+                Class.forName("com.google.android.filament.LightManager\$Instance"),
+                Boolean::class.javaPrimitiveType
+            ).invoke(lm, inst, false)
+        }
+    }.isSuccess
+
+    private fun setRenderableChannel(renderableEntity: Int, channel: Int, enabled: Boolean) = runCatching {
+        val engine = sceneView::class.java.getMethod("getEngine").invoke(sceneView)
+        val rm = engine.javaClass.getMethod("getRenderableManager").invoke(engine)
+        val inst = rm.javaClass.getMethod("getInstance", Int::class.javaPrimitiveType).invoke(rm, renderableEntity)
+        rm.javaClass.getMethod(
+            "setLightChannel",
+            Class.forName("com.google.android.filament.RenderableManager\$Instance"),
+            Int::class.javaPrimitiveType,
+            Boolean::class.javaPrimitiveType
+        ).invoke(rm, inst, channel, enabled)
+
+        // đảm bảo nhận ánh sáng (phòng khi có cờ tắt nhận sáng)
+        runCatching {
+            rm.javaClass.getMethod(
+                "setScreenSpaceContactShadows",
+                Class.forName("com.google.android.filament.RenderableManager\$Instance"),
+                Boolean::class.javaPrimitiveType
+            ).invoke(rm, inst, false)
+        }
+    }.isSuccess
 
 }
