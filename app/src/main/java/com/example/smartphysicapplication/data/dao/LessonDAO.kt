@@ -2,10 +2,14 @@ package com.example.smartphysicapplication.data.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Upsert
 import com.example.smartphysicapplication.data.models.LessonMODEL
 
 @Dao
 interface LessonDAO {
+    @Upsert
+    suspend fun upsert(vararg items: LessonMODEL)
+
     @Query("SELECT LessonName FROM Lesson WHERE ClassId = :classId AND ChapterId = :chapterId")
     suspend fun getLessonsNameByClassIdAndChapterId(classId: String, chapterId: String): String
 
