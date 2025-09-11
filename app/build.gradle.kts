@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
 }
 
@@ -14,9 +14,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
     }
 
     defaultConfig {
@@ -32,16 +30,19 @@ android {
             )
         }
     }
+    
     buildFeatures {
         buildConfig = true
         viewBinding = true
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 }
 
@@ -58,7 +59,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     val media3Version = "1.3.1"
-    // For media playback using ExoPlayer (part of Media3)
+
     implementation("androidx.media3:media3-exoplayer:$media3Version")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")

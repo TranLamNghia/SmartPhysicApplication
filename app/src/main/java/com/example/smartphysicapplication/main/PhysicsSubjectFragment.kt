@@ -1,8 +1,10 @@
 package com.example.smartphysicapplication.main
 
 import FormulaFragment
+import android.content.Intent
 import android.net.wifi.p2p.WifiP2pManager.ActionListener
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,12 +13,18 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.smartphysicapplication.R
 import com.example.smartphysicapplication.adapter.ChapterAdapter
+import com.example.smartphysicapplication.data.AppDatabase
+import com.example.smartphysicapplication.data.models.ChapterMODEL
 import com.example.smartphysicapplication.model.Chapter
 import com.example.smartphysicapplication.model.Topic
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import okhttp3.Dispatcher
 
 class PhysicsSubjectFragment : Fragment() {
 
@@ -27,14 +35,21 @@ class PhysicsSubjectFragment : Fragment() {
     private lateinit var chaptersRecyclerView: RecyclerView
     private lateinit var chapterAdapter: ChapterAdapter
 
-    companion object {
-        private const val ARG_SUBJECT_TITLE = "subject_title"
+    private lateinit var classId: String
+    private var classLevel: Int = 0
 
-        fun newInstance(subjectTitle: String): PhysicsSubjectFragment {
+    companion object {
+        private const val ARG_CLASS_ID = "arg_class_id"
+        private const val ARG_CLASS_LEVEL = "arg_class_level"
+
+        fun newInstance(classId: String, classLevel: Int): PhysicsSubjectFragment {
             val fragment = PhysicsSubjectFragment()
-            val args = Bundle()
-            args.putString(ARG_SUBJECT_TITLE, subjectTitle)
-            fragment.arguments = args
+            fragment.apply {
+                arguments = Bundle().apply {
+                    putString(ARG_CLASS_ID, classId)
+                    putInt(ARG_CLASS_LEVEL, classLevel)
+                }
+            }
             return fragment
         }
     }
@@ -54,8 +69,11 @@ class PhysicsSubjectFragment : Fragment() {
         subjectTitleTextView = view.findViewById(R.id.subject_title)
         chaptersRecyclerView = view.findViewById(R.id.chapters_recycler_view)
 
-        arguments?.getString(ARG_SUBJECT_TITLE)?.let {
-            subjectTitleTextView.text = it
+        classId = requireArguments().getString(ARG_CLASS_ID).toString()
+        classLevel = requireArguments().getInt(ARG_CLASS_LEVEL)
+
+        arguments?.getInt(ARG_CLASS_LEVEL)?.let {
+            subjectTitleTextView.text = "VẬT LÝ $it"
         }
 
         btnBack.setOnClickListener {
@@ -74,6 +92,40 @@ class PhysicsSubjectFragment : Fragment() {
     }
 
     private fun setupChaptersRecyclerView() {
+        chaptersRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        viewLifecycleOwner.lifecycleScope.launch {
+            val db = AppDatabase.getDatabase(requireContext())
+
+            val chaptersModel: List<ChapterMODEL> = db.chapterDao().getChaptersByClassId(classId)
+            val uiLChapters = chaptersModel.mapIndexed { index, ch ->
+                val lessonModels = db.lessonDao().getLessonsNameByClassIdAndChapterId(classId, ch.ChapterId)
+
+                Chapter(
+                    chapterNumber = index + 1,
+                    title = ch.ChapterName,
+                    topics = lessonModels.map { lm -> Topic(name = lm.LessonName, videoId = lm.SourceVideo) }
+                )
+
+            }
+
+            Log.d("index_Lod", "ClassId: " + classId + " Size: " + uiLChapters.size.toString())
+
+            chapterAdapter = ChapterAdapter(
+                uiLChapters,
+                onChapterClick = { chapter ->
+                    Toast.makeText(
+                        context,
+                        "Clicked on Chapter ${chapter.chapterNumber}: ${chapter.title}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            )
+
+            chaptersRecyclerView.adapter = chapterAdapter
+        }
+    }
+
+    private fun setupChaptersRecyclerView1() {
         val chapters = listOf(
             Chapter(1, "DAO ĐỘNG", listOf(
                 Topic("Dao Động Cơ", "dQw4w9WgXcQ"),
@@ -105,24 +157,29 @@ class PhysicsSubjectFragment : Fragment() {
         chapterAdapter = ChapterAdapter(
             chapters,
             onChapterClick = { chapter ->
-                Toast.makeText(context, "Clicked on Chapter ${chapter.chapterNumber}: ${chapter.title}", Toast.LENGTH_SHORT).show()
-            },
-            onTopicClick = { chapterTitle, topic ->
-                val topicObj = chapters
-                    .find { it.title == chapterTitle }
-                    ?.topics
-                    ?.find { it.name == topic }
-
-                val videoId = topicObj?.videoId ?: ""
-
-                (activity as? MainActivity)?.navigateIfChanged(
-                    VideoLectureFragment.newInstance(
-                        subjectTitleTextView.text.toString(),
-                        topic,
-                        videoId
-                    )
-                )
+                Toast.makeText(
+                    context,
+                    "Clicked on Chapter ${chapter.chapterNumber}: ${chapter.title}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
+//            },
+//            onTopicClick = { chapterTitle, topic ->
+//                val topicObj = chapters
+//                    .find { it.title == chapterTitle }
+//                    ?.topics
+//                    ?.find { it.name == topic }
+//
+//                val videoId = topicObj?.videoId ?: ""
+//
+//                (activity as? MainActivity)?.navigateIfChanged(
+//                    VideoLectureFragment.newInstance(
+//                        subjectTitleTextView.text.toString(),
+//                        topic,
+//                        videoId
+//                    )
+//                )
+//            }
         )
 
         chaptersRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)

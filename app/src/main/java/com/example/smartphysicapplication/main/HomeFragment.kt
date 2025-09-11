@@ -52,11 +52,12 @@ class HomeFragment : Fragment() {
         }
 
         btnPhysics11.setOnClickListener {
-            (activity as? MainActivity)?.navigateIfChanged(PhysicsSubjectFragment.newInstance("VẬT LÝ 11"))
+            val frag = PhysicsSubjectFragment.newInstance(classId = "L2", classLevel = 11)
+            parentFragmentManager.beginTransaction().replace(R.id.main_fragment_container, frag).addToBackStack(null).commit()
         }
 
         btnPhysics12.setOnClickListener {
-            (activity as? MainActivity)?.navigateIfChanged(PhysicsSubjectFragment.newInstance("VẬT LÝ 12"))
+            showToast("Vật Lý 12 - Đang phát triển")
         }
 
         btnVirtualLab.setOnClickListener {

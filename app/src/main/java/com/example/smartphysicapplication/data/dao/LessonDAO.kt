@@ -10,9 +10,15 @@ interface LessonDAO {
     @Upsert
     suspend fun upsert(vararg items: LessonMODEL)
 
-    @Query("SELECT LessonName FROM Lesson WHERE ClassId = :classId AND ChapterId = :chapterId")
-    suspend fun getLessonsNameByClassIdAndChapterId(classId: String, chapterId: String): String
+    @Query("SELECT * FROM Lesson WHERE ClassId = :classId AND ChapterId = :chapterId")
+    suspend fun getLessonsNameByClassIdAndChapterId(classId: String, chapterId: String): List<LessonMODEL>
 
     @Query("SELECT LessonId, LessonName, SourceVideo FROM Lesson WHERE ClassId = :classId AND ChapterId = :chapterId AND LessonId = :lessonId")
-    suspend fun getLessonById(classId: String, chapterId: String, lessonId: String): LessonMODEL
+    suspend fun getLessonById(classId: String, chapterId: String, lessonId: String): List<LesssonAsset>
 }
+
+data class LesssonAsset (
+    val LessonId: String,
+    val LessonName: String,
+    val SourceVideo: String
+)

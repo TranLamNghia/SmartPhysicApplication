@@ -11,7 +11,7 @@ import com.example.smartphysicapplication.model.Chapter
 class ChapterAdapter(
     private val chapters: List<Chapter>,
     private val onChapterClick: (Chapter) -> Unit,
-    private val onTopicClick: (String, String) -> Unit // chapterTitle, topicTitle
+//    private val onTopicClick: (String, String) -> Unit
 ) : RecyclerView.Adapter<ChapterAdapter.ChapterViewHolder>() {
 
     class ChapterViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -30,8 +30,7 @@ class ChapterAdapter(
         holder.chapterNumber.text = "Chương ${chapter.chapterNumber}"
         holder.chapterTitle.text = chapter.title
 
-        // Format topics as a bulleted list
-        val topicsText = chapter.topics.joinToString(separator = "\n") { "• ${it.name}" } // Use topic.name
+        val topicsText = chapter.topics.joinToString(separator = "\n") { "• ${it.name}" }
         holder.chapterTopics.text = topicsText
 
         holder.itemView.setOnClickListener {
@@ -40,7 +39,7 @@ class ChapterAdapter(
 
         holder.chapterTopics.setOnClickListener {
             if (chapter.topics.isNotEmpty()) {
-                onTopicClick(chapter.title, chapter.topics[0].name) // Example: click on the first topic
+//                onTopicClick(chapter.title, chapter.topics[0].name)
             }
         }
     }
