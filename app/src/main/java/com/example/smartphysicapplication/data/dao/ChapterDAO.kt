@@ -23,10 +23,10 @@ interface ChapterDAO {
 
 data class FormulaAsset (
     val ChapterName: String,
-    val SourceImageFormula: String
+    val SourceImageFormula: String?
 )
 
 data class MindMapAsset (
     val ChapterName: String,
-    val SourceImageMindMap: String
+    val SourceImageMindMap: String?
 )

@@ -85,7 +85,8 @@ class PhysicsSubjectFragment : Fragment() {
         }
 
         btnFormula.setOnClickListener {
-            (activity as? MainActivity)?.navigateIfChanged(FormulaFragment())
+            val frag = FormulaFragment.newInstance(classId = "L2")
+            parentFragmentManager.beginTransaction().replace(R.id.main_fragment_container, frag).addToBackStack(null).commit()
         }
 
         setupChaptersRecyclerView()
@@ -123,66 +124,5 @@ class PhysicsSubjectFragment : Fragment() {
 
             chaptersRecyclerView.adapter = chapterAdapter
         }
-    }
-
-    private fun setupChaptersRecyclerView1() {
-        val chapters = listOf(
-            Chapter(1, "DAO ĐỘNG", listOf(
-                Topic("Dao Động Cơ", "dQw4w9WgXcQ"),
-                Topic("Dao động điều hòa", "dQw4w9WgXcQ"),
-                Topic("Con lắc lò xo", "dQw4w9WgXcQ"),
-                Topic("Con lắc đơn", "dQw4w9WgXcQ"),
-                Topic("Dao động tắt dần", "dQw4w9WgXcQ")
-            )),
-            Chapter(2, "SÓNG", listOf(
-                Topic("Sóng", "dQw4w9WgXcQ"),
-                Topic("Sóng dọc", "dQw4w9WgXcQ"),
-                Topic("Giao thoa", "dQw4w9WgXcQ"),
-                Topic("Sóng dừng", "dQw4w9WgXcQ")
-            )),
-            Chapter(3, "ĐIỆN XOAY CHIỀU", listOf(
-                Topic("Đại cương về dòng điện xoay chiều", "dQw4w9WgXcQ"),
-                Topic("Mạch RLC nối tiếp", "dQw4w9WgXcQ"),
-                Topic("Công suất điện xoay chiều", "dQw4w9WgXcQ"),
-                Topic("Truyền tải điện năng", "dQw4w9WgXcQ")
-            )),
-            Chapter(4, "SÓNG ÁNH SÁNG", listOf(
-                Topic("Tán sắc ánh sáng", "dQw4w9WgXcQ"),
-                Topic("Giao thoa ánh sáng", "dQw4w9WgXcQ"),
-                Topic("Quang phổ", "dQw4w9WgXcQ"),
-                Topic("Tia X, tử ngoại, hồng ngoại", "dQw4w9WgXcQ")
-            ))
-        )
-
-        chapterAdapter = ChapterAdapter(
-            chapters,
-            onChapterClick = { chapter ->
-                Toast.makeText(
-                    context,
-                    "Clicked on Chapter ${chapter.chapterNumber}: ${chapter.title}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-//            },
-//            onTopicClick = { chapterTitle, topic ->
-//                val topicObj = chapters
-//                    .find { it.title == chapterTitle }
-//                    ?.topics
-//                    ?.find { it.name == topic }
-//
-//                val videoId = topicObj?.videoId ?: ""
-//
-//                (activity as? MainActivity)?.navigateIfChanged(
-//                    VideoLectureFragment.newInstance(
-//                        subjectTitleTextView.text.toString(),
-//                        topic,
-//                        videoId
-//                    )
-//                )
-//            }
-        )
-
-        chaptersRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        chaptersRecyclerView.adapter = chapterAdapter
     }
 }

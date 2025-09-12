@@ -1,41 +1,49 @@
-import android.content.Context
+import android.content.res.Resources
+import com.bumptech.glide.Glide
 import android.os.Bundle
 import android.transition.AutoTransition
 import android.transition.TransitionManager
+import android.util.Log
 import android.view.*
+import android.widget.Button
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ScrollView
+import android.widget.TextView
+import android.widget.Toast
+import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.smartphysicapplication.R
-import kotlin.math.max
+import com.example.smartphysicapplication.data.AppDatabase
+import com.example.smartphysicapplication.data.dao.FormulaAsset
+import kotlinx.coroutines.launch
 
 class FormulaFragment : Fragment() {
 
     private lateinit var scrollView: ScrollView
     private lateinit var btnBack: ImageView
+    private lateinit var container: LinearLayout
 
-    private lateinit var item1: View;
-    private lateinit var item2: View;
-    private lateinit var item3: View
-    private lateinit var item4: View;
-    private lateinit var item5: View;
-    private lateinit var item6: View
-    private lateinit var item7: View;
-    private lateinit var item8: View
-    private lateinit var item9: View
+    private lateinit var classId: String
 
-    private lateinit var card1: View;
-    private lateinit var card2: View;
-    private lateinit var card3: View
-    private lateinit var card4: View;
-    private lateinit var card5: View;
-    private lateinit var card6: View
-    private lateinit var card7: View;
-    private lateinit var card8: View
-    private lateinit var card9: View
+    private val Int.dp: Int
+        get() = (this * Resources.getSystem().displayMetrics.density).toInt()
 
-    private lateinit var allPairs: List<Pair<View, View>>
-    private lateinit var allCards: List<View>
+
+    companion object {
+        private const val ARG_CLASS_ID = "arg_class_id"
+
+        fun newInstance(classId: String): FormulaFragment  {
+            val fragment = FormulaFragment ()
+            fragment.apply {
+                arguments = Bundle().apply {
+                    putString(ARG_CLASS_ID, classId)
+                }
+            }
+            return fragment
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -43,65 +51,138 @@ class FormulaFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        classId = requireArguments().getString(ARG_CLASS_ID).toString()
 
+        container = view.findViewById(R.id.formula_container)
         scrollView = view as ScrollView
         btnBack = view.findViewById(R.id.btn_back)
-
-        // items
-        item1 = view.findViewById(R.id.formula_item_1)
-        item2 = view.findViewById(R.id.formula_item_2)
-        item3 = view.findViewById(R.id.formula_item_3)
-        item4 = view.findViewById(R.id.formula_item_4)
-        item5 = view.findViewById(R.id.formula_item_5)
-        item6 = view.findViewById(R.id.formula_item_6)
-        item7 = view.findViewById(R.id.formula_item_7)
-        item8 = view.findViewById(R.id.formula_item_8)
-        item9 = view.findViewById(R.id.formula_item_9)
-
-        // cards
-        card1 = view.findViewById(R.id.card_formula_1)
-        card2 = view.findViewById(R.id.card_formula_2)
-//        card3 = view.findViewById(R.id.card_formula_3)
-//        card4 = view.findViewById(R.id.card_formula_4)
-//        card5 = view.findViewById(R.id.card_formula_5)
-//        card6 = view.findViewById(R.id.card_formula_6)
-//        card7 = view.findViewById(R.id.card_formula_7)
-//        card8 = view.findViewById(R.id.card_formula_8)
-//        card9 = view.findViewById(R.id.card_formula_9)
-
-        allPairs = listOf(
-            item1 to card1, item2 to card2//, item3 to card3, item4 to card4, item5 to card5, item6 to card6, item7 to card7, item8 to card8, item9 to card9
-        )
-        allCards = allPairs.map { it.second }
-
-        // click => chỉ mở card tương ứng
-        allPairs.forEach { (item, card) ->
-            item.setOnClickListener { toggleOnly(card) }
-        }
-
         btnBack.setOnClickListener { parentFragmentManager.popBackStack() }
+
+        loadChapters()
     }
 
-    private fun toggleOnly(target: View) {
-        val willOpen = target.visibility != View.VISIBLE
-        val parent = target.parent as ViewGroup
-        TransitionManager.beginDelayedTransition(parent, AutoTransition())
+    private fun loadChapters() {
+        container.removeAllViews()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val db = AppDatabase.getDatabase(requireContext())
+            val chapterFormula: List<FormulaAsset> = db.chapterDao().getFormulaByClassId(classId)
 
-        allCards.forEach { it.visibility = View.GONE }
+            chapterFormula.forEachIndexed { idx, ch ->
+                // ----- formula_item_x -----
+                val item = LinearLayout(requireContext()).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    setBackgroundResource(android.R.color.transparent)
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply { setMargins(0, 0, 0, 16) }
+                    setPadding(8, 8, 8, 8)
+                    id = View.generateViewId()
+                    setTag("formula_item_$idx")
+                }
 
-        if (willOpen) {
-            target.visibility = View.VISIBLE
-            scrollTo(target)
+                val circle = LinearLayout(requireContext()).apply {
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply { setMargins(0, 0, 10, 0) }
+                    setBackgroundResource(R.drawable.circle_green800_background)
+                }
+                val arrow = ImageView(requireContext()).apply {
+                    setImageResource(R.drawable.ic_arrow_right_thick)
+                    setPadding(10, 10, 10, 10)
+                    layoutParams = LinearLayout.LayoutParams(
+                        25.dp,  // width
+                        25.dp   // height
+                    )
+                }
+                circle.addView(arrow)
+
+                val title = TextView(requireContext()).apply {
+                    text = "Công thức chương ${idx + 1}: ${ch.ChapterName}"
+                    setTextAppearance(R.style.LessonTextStyle)
+                    setTextColor(resources.getColor(R.color.green_600, null))
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT      // cao bằng item cha
+                    ).apply {
+                        gravity = Gravity.CENTER_VERTICAL  // căn giữa dọc
+                    }
+                    gravity = Gravity.CENTER_VERTICAL
+                }
+
+                item.addView(circle)
+                item.addView(title)
+
+                val card = CardView(requireContext()).apply {
+                    radius = 16f
+                    cardElevation = 4f
+                    visibility = View.GONE
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply { setMargins(0, 0, 0, 24) }
+                    setTag("card_formula_$idx")
+                }
+                val img = ImageView(requireContext()).apply {
+                    adjustViewBounds = true
+                    scaleType = ImageView.ScaleType.FIT_CENTER
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                }
+                card.addView(img)
+
+                // gán click show ảnh
+                item.setOnClickListener {
+                    val resId = resolveDrawableResId(ch.SourceImageFormula)
+                    if (resId == null) {
+                        Toast.makeText(requireContext(), "Chương này chưa có công thức", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+
+                    val transition = AutoTransition().apply {
+                        duration = 200
+                        interpolator = android.view.animation.AccelerateDecelerateInterpolator()
+                    }
+                    TransitionManager.beginDelayedTransition(container,  AutoTransition())
+
+                    if (card.visibility == View.VISIBLE) {
+                        (card as CardView).visibility = View.GONE
+                    } else {
+                        for (i in 0 until container.childCount) {
+                            (container.getChildAt(i) as? CardView)?.visibility = View.GONE
+                        }
+
+                        if (img.drawable == null) {
+                            img.setImageResource(resId)
+                        }
+                        card.visibility = View.VISIBLE
+                        scrollTo(card)
+                    }
+                }
+
+
+                container.addView(item)
+                container.addView(card)
+            }
+
         }
+
     }
 
     private fun scrollTo(target: View) {
         scrollView.post {
-            val y = target.top - 24.dpToPx(requireContext())
-            scrollView.smoothScrollTo(0, max(0, y))
+            val y = target.top - (24 * resources.displayMetrics.density).toInt()
+            scrollView.smoothScrollTo(0, if (y > 0) y else 0)
         }
     }
 
-    private fun Int.dpToPx(ctx: Context): Int =
-        (this * ctx.resources.displayMetrics.density).toInt()
+    private fun resolveDrawableResId(nameOrRef: String?): Int? {
+        if (nameOrRef.isNullOrBlank()) return null
+        val cleaned = nameOrRef.removePrefix("drawable/").substringBefore('.').trim()
+        val resId = resources.getIdentifier(cleaned, "drawable", requireContext().packageName)
+        return if (resId != 0) resId else null
+    }
 }
