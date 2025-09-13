@@ -1,6 +1,7 @@
 package com.example.smartphysicapplication.model
 
 data class Chapter(
+    val chapterId: String,
     val chapterNumber: Int,
     val title: String,
     val topics: List<Topic>

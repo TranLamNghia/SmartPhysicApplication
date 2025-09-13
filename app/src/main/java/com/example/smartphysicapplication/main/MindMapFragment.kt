@@ -93,8 +93,8 @@ class MindMapFragment : Fragment() {
                     setImageResource(R.drawable.ic_arrow_right_thick)
                     setPadding(10, 10, 10, 10)
                     layoutParams = LinearLayout.LayoutParams(
-                        25.dp,  // width
-                        25.dp   // height
+                        25.dp,
+                        25.dp
                     )
                 }
                 circle.addView(arrow)

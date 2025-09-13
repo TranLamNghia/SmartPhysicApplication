@@ -11,7 +11,7 @@ import com.example.smartphysicapplication.model.Chapter
 class ChapterAdapter(
     private val chapters: List<Chapter>,
     private val onChapterClick: (Chapter) -> Unit,
-//    private val onTopicClick: (String, String) -> Unit
+    private val onTopicClick: (Chapter) -> Unit
 ) : RecyclerView.Adapter<ChapterAdapter.ChapterViewHolder>() {
 
     class ChapterViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -39,7 +39,7 @@ class ChapterAdapter(
 
         holder.chapterTopics.setOnClickListener {
             if (chapter.topics.isNotEmpty()) {
-//                onTopicClick(chapter.title, chapter.topics[0].name)
+                onTopicClick(chapter)
             }
         }
     }

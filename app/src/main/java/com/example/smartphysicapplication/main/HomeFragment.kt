@@ -11,7 +11,14 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.smartphysicapplication.R
+import com.example.smartphysicapplication.adapter.ChapterAdapter
+import com.example.smartphysicapplication.data.AppDatabase
+import com.example.smartphysicapplication.data.models.ChapterMODEL
+import com.example.smartphysicapplication.model.Chapter
+import com.example.smartphysicapplication.model.Topic
+import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
 
@@ -43,6 +50,10 @@ class HomeFragment : Fragment() {
         gamificationPathIcon= view.findViewById(R.id.btn_gamification)
 
         setupClickListeners()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val db = AppDatabase.getDatabase(requireContext())
+        }
     }
 
 

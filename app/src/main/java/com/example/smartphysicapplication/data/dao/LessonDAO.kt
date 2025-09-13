@@ -13,12 +13,12 @@ interface LessonDAO {
     @Query("SELECT * FROM Lesson WHERE ClassId = :classId AND ChapterId = :chapterId")
     suspend fun getLessonsNameByClassIdAndChapterId(classId: String, chapterId: String): List<LessonMODEL>
 
-    @Query("SELECT LessonId, LessonName, SourceVideo FROM Lesson WHERE ClassId = :classId AND ChapterId = :chapterId AND LessonId = :lessonId")
-    suspend fun getLessonById(classId: String, chapterId: String, lessonId: String): List<LesssonAsset>
+    @Query("SELECT LessonId, LessonName, SourceVideo FROM Lesson WHERE ClassId = :classId AND ChapterId = :chapterId")
+    suspend fun getLessonsByClassAndChapter(classId: String, chapterId: String): List<LessonAsset>
 }
 
-data class LesssonAsset (
+data class LessonAsset (
     val LessonId: String,
     val LessonName: String,
-    val SourceVideo: String
+    val SourceVideo: String?
 )

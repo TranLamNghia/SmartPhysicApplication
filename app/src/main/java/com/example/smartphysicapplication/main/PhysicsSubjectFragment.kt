@@ -103,14 +103,13 @@ class PhysicsSubjectFragment : Fragment() {
                 val lessonModels = db.lessonDao().getLessonsNameByClassIdAndChapterId(classId, ch.ChapterId)
 
                 Chapter(
+                    chapterId = ch.ChapterId,
                     chapterNumber = index + 1,
                     title = ch.ChapterName,
                     topics = lessonModels.map { lm -> Topic(name = lm.LessonName, videoId = lm.SourceVideo) }
                 )
 
             }
-
-            Log.d("index_Lod", "ClassId: " + classId + " Size: " + uiLChapters.size.toString())
 
             chapterAdapter = ChapterAdapter(
                 uiLChapters,
@@ -120,6 +119,10 @@ class PhysicsSubjectFragment : Fragment() {
                         "Clicked on Chapter ${chapter.chapterNumber}: ${chapter.title}",
                         Toast.LENGTH_SHORT
                     ).show()
+                },
+                onTopicClick = { chapter ->
+                    val frag = VideoLectureFragment.newInstance(classId, chapter.chapterId)
+                    parentFragmentManager.beginTransaction().replace(R.id.main_fragment_container, frag).addToBackStack(null).commit()
                 }
             )
 

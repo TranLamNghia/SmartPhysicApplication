@@ -44,14 +44,15 @@
             android:layout_marginBottom="25dp"/>
 
         <TextView
+            android:id="@+id/lessonName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
             android:text="BÀI 1: DAO ĐỘNG ĐIỀU HÒA"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:textColor="@color/black"
             android:textAlignment="center"
-            android:layout_marginBottom="16dp" />
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <!-- Video Thumbnail Card -->
         <androidx.cardview.widget.CardView
@@ -76,93 +77,13 @@
             </FrameLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Lesson List -->
         <LinearLayout
+            android:id="@+id/lesson_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginBottom="20dp">
-
-            <LinearLayout android:id="@+id/lesson_item_1"
-                style="@style/LessonItemStyle">
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/circle_green800_background"
-                    android:layout_marginEnd="10dp">
-                        <ImageView style="@style/LessonArrowStyle"/>
-                </LinearLayout>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Bài 1: Dao động điều hòa"
-                    style="@style/LessonTextStyle" />
-            </LinearLayout>
-
-            <LinearLayout android:id="@+id/lesson_item_2"
-                style="@style/LessonItemStyle">
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/circle_green800_background"
-                    android:layout_marginEnd="10dp">
-                        <ImageView style="@style/LessonArrowStyle"/>
-                </LinearLayout>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Bài 2: Mô tả dao động điều hòa"
-                    style="@style/LessonTextStyle" />
-            </LinearLayout>
-
-            <LinearLayout android:id="@+id/lesson_item_3"
-                style="@style/LessonItemStyle">
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/circle_green800_background"
-                    android:layout_marginEnd="10dp">
-                    <ImageView style="@style/LessonArrowStyle"/>
-                </LinearLayout>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Bài 3: Vận tốc, gia tốc"
-                    style="@style/LessonTextStyle" />
-            </LinearLayout>
-
-            <LinearLayout android:id="@+id/lesson_item_4"
-                style="@style/LessonItemStyle">
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/circle_green800_background"
-                    android:layout_marginEnd="10dp">
-                    <ImageView style="@style/LessonArrowStyle"/>
-                </LinearLayout>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Bài 4: Động năng, thế năng và cơ năng"
-                    style="@style/LessonTextStyle" />
-            </LinearLayout>
-
-            <LinearLayout android:id="@+id/lesson_item_5"
-                style="@style/LessonItemStyle">
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/circle_green800_background"
-                    android:layout_marginEnd="10dp">
-                    <ImageView style="@style/LessonArrowStyle"/>
-                </LinearLayout>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Bài 5: Ôn tập"
-                    style="@style/LessonTextStyle" />
-            </LinearLayout>
-        </LinearLayout>
+            android:layout_marginTop="16dp"
+            android:padding="8dp"/>
 
         <!-- Comment Section -->
         <LinearLayout
