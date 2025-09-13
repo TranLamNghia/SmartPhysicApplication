@@ -81,11 +81,12 @@ class PhysicsSubjectFragment : Fragment() {
         }
 
         btnMindMap.setOnClickListener {
-            (activity as? MainActivity)?.navigateIfChanged(MindMapFragment())
+            val frag = MindMapFragment.newInstance(classId)
+            parentFragmentManager.beginTransaction().replace(R.id.main_fragment_container, frag).addToBackStack(null).commit()
         }
 
         btnFormula.setOnClickListener {
-            val frag = FormulaFragment.newInstance(classId = "L2")
+            val frag = FormulaFragment.newInstance(classId)
             parentFragmentManager.beginTransaction().replace(R.id.main_fragment_container, frag).addToBackStack(null).commit()
         }
 

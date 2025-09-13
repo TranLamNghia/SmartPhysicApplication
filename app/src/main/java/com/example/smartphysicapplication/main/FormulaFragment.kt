@@ -138,7 +138,6 @@ class FormulaFragment : Fragment() {
                 item.setOnClickListener {
                     val resId = resolveDrawableResId(ch.SourceImageFormula)
                     if (resId == null) {
-                        Toast.makeText(requireContext(), "Chương này chưa có công thức", Toast.LENGTH_SHORT).show()
                         return@setOnClickListener
                     }
 
