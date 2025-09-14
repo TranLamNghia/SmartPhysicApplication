@@ -25,34 +25,41 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getDatabase(context : Context) : AppDatabase {
             return INSTANCE ?: synchronized(this) {
+//                val instance = Room.databaseBuilder(
+//                    context.applicationContext,
+//                    AppDatabase::class.java,
+//                    "physic_smart_app_database"
+//                ).addCallback(object : RoomDatabase.Callback() {
+//                    override fun onCreate(db: SupportSQLiteDatabase) {
+//                        super.onCreate(db)
+//                        CoroutineScope(Dispatchers.IO).launch {
+//                            val app = context.applicationContext
+//                            val instance = INSTANCE ?: return@launch
+//                            val gson = Gson()
+//
+//                            val classesJson = app.assets.open("json/classes.json").bufferedReader().use { it.readText() }
+//                            val chaptersJson = app.assets.open("json/chapters.json").bufferedReader().use { it.readText() }
+//                            val lessonsJson = app.assets.open("json/lessons.json").bufferedReader().use { it.readText() }
+//
+//                            val listClass = gson.fromJson(classesJson, Array<ClassMODEL>::class.java).toList().toList()
+//                            val listChapter = gson.fromJson(chaptersJson, Array<ChapterMODEL>::class.java).toList().toList()
+//                            val listLesson = gson.fromJson(lessonsJson, Array<LessonMODEL>::class.java).toList().toList()
+//
+//                            instance.withTransaction {
+//                                instance.classDao().upsert(*listClass.toTypedArray())
+//                                instance.chapterDao().upsert(*listChapter.toTypedArray())
+//                                instance.lessonDao().upsert(*listLesson.toTypedArray())
+//                            }
+//                        }
+//                    }
+//                }).build()
                 val instance = Room.databaseBuilder(
-                    context.applicationContext,
+                    context,
                     AppDatabase::class.java,
                     "physic_smart_app_database"
-                ).addCallback(object : RoomDatabase.Callback() {
-                    override fun onCreate(db: SupportSQLiteDatabase) {
-                        super.onCreate(db)
-                        CoroutineScope(Dispatchers.IO).launch {
-                            val app = context.applicationContext
-                            val instance = INSTANCE ?: return@launch
-                            val gson = Gson()
-
-                            val classesJson = app.assets.open("json/classes.json").bufferedReader().use { it.readText() }
-                            val chaptersJson = app.assets.open("json/chapters.json").bufferedReader().use { it.readText() }
-                            val lessonsJson = app.assets.open("json/lessons.json").bufferedReader().use { it.readText() }
-
-                            val listClass = gson.fromJson(classesJson, Array<ClassMODEL>::class.java).toList().toList()
-                            val listChapter = gson.fromJson(chaptersJson, Array<ChapterMODEL>::class.java).toList().toList()
-                            val listLesson = gson.fromJson(lessonsJson, Array<LessonMODEL>::class.java).toList().toList()
-
-                            instance.withTransaction {
-                                instance.classDao().upsert(*listClass.toTypedArray())
-                                instance.chapterDao().upsert(*listChapter.toTypedArray())
-                                instance.lessonDao().upsert(*listLesson.toTypedArray())
-                            }
-                        }
-                    }
-                }).build()
+                )
+                .createFromAsset("prepopulated/physic_smart_app_database.db")
+                .build()
                 INSTANCE = instance
                 instance
             }
